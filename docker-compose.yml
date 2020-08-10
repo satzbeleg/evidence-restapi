@@ -1,0 +1,8 @@
+version: '3'
+services:
+  evidence-restapi:
+    build: .
+    ports:
+      - "12345:80"
+  #otherservice:
+  #  image: "dockername:version"
