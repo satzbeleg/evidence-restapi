@@ -2,7 +2,7 @@ from fastapi import FastAPI
 
 # define the server url (excl. hostname:port)
 # srvurl = "/testapi/v1"
-srvurl = ""
+srvurl = "/v1"
 
 # basic information
 app = FastAPI(
