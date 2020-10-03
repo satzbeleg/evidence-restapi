@@ -20,8 +20,8 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # install packages
 RUN pip3 install --no-cache-dir --upgrade pip
-COPY requirements-docker.txt requirements-docker.txt
-RUN pip3 install --no-cache-dir -r requirements-docker.txt
+COPY requirements-server.txt requirements-server.txt
+RUN pip3 install --no-cache-dir -r requirements-server.txt
 COPY requirements.txt requirements.txt
 RUN pip3 install --no-cache-dir -r requirements.txt
 
