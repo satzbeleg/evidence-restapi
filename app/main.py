@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 import lorem
-import time, random
+import time
+import random
 
 # define the server url (excl. hostname:port)
 # srvurl = "/testapi/v1"
@@ -20,6 +21,12 @@ app = FastAPI(
 )
 
 
+def my_rand_id():
+    part1 = int(time.time()) % 100000
+    part2 = random.randint(1000, 9999)
+    return int(f"{part1}{part2}")
+
+
 # specify the endpoints
 @app.get(f"{srvurl}/")
 def read_root():
@@ -29,20 +36,22 @@ def read_root():
 # retrieve random examples for bestworst
 # example: http://127.0.0.1:8000/bestworst/random/4
 @app.get(srvurl + "/bestworst/random/{n_sentences}")
-async def read_items_null(n_sentences: int):
+async def get_bestworst_random_sentence(n_sentences: int):
     return [
         {
-            "id": int(f"{int(time.time()) % 100000}{random.randint(1000,9999)}"), 
+            "id": my_rand_id(),
             "text": lorem.sentence()
         }
         for _ in range(n_sentences)
     ]
 
+
 @app.get(srvurl + "/bestworst/random/{n_sentences}/{n_examplesets}")
-async def read_items_null(n_sentences: int, n_examplesets: int):
+async def get_bestworst_random_exampleset(n_sentences: int,
+                                          n_examplesets: int):
     return [{
-            "set_id": f"demo-exampleset-{int(time.time()) % 1000}{random.randint(1000,9999)}",
+            "set_id": f"demo-exampleset-{my_rand_id()}",
             "examples": [
-                {"id": int(f"{int(time.time()) % 100000}{random.randint(1000,9999)}"), "text": lorem.sentence()}
+                {"id": my_rand_id(), "text": lorem.sentence()}
                 for _ in range(n_sentences)
             ]} for _ in range(n_examplesets)]
