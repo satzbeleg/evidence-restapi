@@ -1,7 +1,9 @@
 version: '3'
 services:
   evidence-restapi:
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "12345:80"
   #otherservice:
