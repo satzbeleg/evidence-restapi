@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 
 from .routers import (
     bestworst_random, token
@@ -43,6 +43,6 @@ app.include_router(
     bestworst_random.router,
     prefix=f"/{version}/bestworst/random",
     tags=["sentences"],
-    # dependencies=[Depends(get_token_header)],
+    dependencies=[Depends(token.get_current_active_user)],
     # responses={404: {"description": "Not found"}},
 )
