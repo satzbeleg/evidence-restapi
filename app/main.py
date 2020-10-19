@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 
 from .routers import (
-    bestworst_random
+    bestworst_random, token
 )
 
 
@@ -26,6 +26,15 @@ app = FastAPI(
 @app.get(f"/{version}/")
 def read_root():
     return {"msg": "Welcome to the EVIDENCE project."}
+
+
+app.include_router(
+    token.router,
+    prefix=f"/{version}/token",
+    tags=["auth", "token"],
+    # dependencies=[Depends(get_token_header)],
+    # responses={404: {"description": "Not found"}},
+)
 
 
 # GET /bestworst/random/{n_sents}
