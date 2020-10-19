@@ -31,7 +31,7 @@ def read_root():
 app.include_router(
     token.router,
     prefix=f"/{version}/token",
-    tags=["auth", "token"],
+    tags=["auth"],
     # dependencies=[Depends(get_token_header)],
     # responses={404: {"description": "Not found"}},
 )
