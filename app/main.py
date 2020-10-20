@@ -1,5 +1,7 @@
 from fastapi import FastAPI, Depends
 
+from fastapi.middleware.cors import CORSMiddleware
+
 from .routers import (
     bestworst_random, token
 )
@@ -19,6 +21,18 @@ app = FastAPI(
     openapi_url=f"/{version}/openapi.json",
     docs_url=f"/{version}/docs",
     redoc_url=f"/{version}/redoc"
+)
+
+# allow exceptions to develop on the same machine/host (i.e. localhost)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:8080",
+        "http://localhost:8081"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 

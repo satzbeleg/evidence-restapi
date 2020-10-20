@@ -18,7 +18,7 @@ bash install.sh
 
 ```
 source .venv/bin/activate
-uvicorn app.main:app --host 0.0.0.0 --port 53050 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 53050 --reload --log-level debug
 ```
 
 (3) Run some requests
@@ -26,6 +26,13 @@ uvicorn app.main:app --host 0.0.0.0 --port 53050 --reload
 ```
 curl http://127.0.0.1:53050/bestworst/4
 curl -I --http2 http://127.0.0.1:53050
+```
+
+```python
+import requests
+data = {"username": "johndoe", "password": "secret"}
+resp = requests.post("http://localhost:53050/v1/token", data)
+print(resp.text)
 ```
 
 ## Run as docker container
