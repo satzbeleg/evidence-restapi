@@ -140,7 +140,7 @@ async def get_current_active_user(
 
 
 # Requires: ACCESS_TOKEN_EXPIRE_MINUTES
-@router.post("")
+@router.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     user = authenticate_user(
         fake_users_db,
@@ -159,13 +159,13 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-@router.get("/me")
+@router.get("/user")
 async def read_users_me(
         current_user: User = Depends(get_current_active_user)):
     return current_user
 
 
-@router.get("/me/items/")
+@router.get("/user/items/")
 async def read_own_items(
         current_user: User = Depends(get_current_active_user)):
     return [{"item_id": "Foo", "owner": current_user.username}]
