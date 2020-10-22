@@ -1,11 +1,14 @@
-from fastapi import FastAPI
-import lorem
-import time
-import random
+from fastapi import FastAPI, Depends
 
-# define the server url (excl. hostname:port)
-# srvurl = "/testapi/v1"
-srvurl = "/v1"
+from fastapi.middleware.cors import CORSMiddleware
+
+from .routers import (
+    bestworst_random, token
+)
+
+
+# API version
+version = "v1"
 
 # basic information
 app = FastAPI(
@@ -15,43 +18,45 @@ app = FastAPI(
         "with b) the PostgreSQL database, and return good examples "
         "with respect to c) the latest PyTorch model."),
     version="0.1.0",
-    openapi_url=f"{srvurl}/openapi.json",
-    docs_url=f"{srvurl}/docs",
-    redoc_url=f"{srvurl}/redoc"
+    openapi_url=f"/{version}/openapi.json",
+    docs_url=f"/{version}/docs",
+    redoc_url=f"/{version}/redoc"
+)
+
+# allow exceptions to develop on the same machine/host (i.e. localhost)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:8080",
+        "http://localhost:8081"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
-def my_rand_id():
-    part1 = int(time.time()) % 100000
-    part2 = random.randint(1000, 9999)
-    return int(f"{part1}{part2}")
-
-
 # specify the endpoints
-@app.get(f"{srvurl}/")
+@app.get(f"/{version}/")
 def read_root():
     return {"msg": "Welcome to the EVIDENCE project."}
 
 
-# retrieve random examples for bestworst
-# example: http://127.0.0.1:8000/bestworst/random/4
-@app.get(srvurl + "/bestworst/random/{n_sentences}")
-async def get_bestworst_random_sentence(n_sentences: int):
-    return [
-        {
-            "id": my_rand_id(),
-            "text": lorem.sentence()
-        }
-        for _ in range(n_sentences)
-    ]
+app.include_router(
+    token.router,
+    prefix=f"/{version}/auth",
+    tags=["auth"],
+    # dependencies=[Depends(get_token_header)],
+    # responses={404: {"description": "Not found"}},
+)
 
 
-@app.get(srvurl + "/bestworst/random/{n_sentences}/{n_examplesets}")
-async def get_bestworst_random_exampleset(n_sentences: int,
-                                          n_examplesets: int):
-    return [{
-            "set_id": f"demo-exampleset-{my_rand_id()}",
-            "examples": [
-                {"id": my_rand_id(), "text": lorem.sentence()}
-                for _ in range(n_sentences)
-            ]} for _ in range(n_examplesets)]
+# GET /bestworst/random/{n_sents}
+# GET /bestworst/random/{n_sents}/{m_sets}
+app.include_router(
+    bestworst_random.router,
+    prefix=f"/{version}/bestworst/random",
+    tags=["sentences"],
+    dependencies=[Depends(token.get_current_active_user)],
+    # responses={404: {"description": "Not found"}},
+)

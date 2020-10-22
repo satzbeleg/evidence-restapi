@@ -18,14 +18,21 @@ bash install.sh
 
 ```
 source .venv/bin/activate
-uvicorn app.main:app --reload
+uvicorn app.main:app --host 0.0.0.0 --port 53050 --reload --log-level debug
 ```
 
 (3) Run some requests
 
 ```
-curl http://127.0.0.1:8000/items/5?q=somequery
-curl -I --http2 http://127.0.0.1:8000
+curl http://127.0.0.1:53050/bestworst/4
+curl -I --http2 http://127.0.0.1:53050
+```
+
+```python
+import requests
+data = {"username": "johndoe", "password": "secret"}
+resp = requests.post("http://localhost:53050/v1/token", data)
+print(resp.text)
 ```
 
 ## Run as docker container
@@ -40,7 +47,7 @@ sudo docker-compose up
 Check
 
 ```
-curl http://localhost:12345
+curl http://localhost:53050
 ```
 
 Notes: Only `main.py` is used in `Dockerfile`.
@@ -48,5 +55,5 @@ Notes: Only `main.py` is used in `Dockerfile`.
 
 ## Misc Commands
 - Check pip8 syntax: `flake8 --ignore=F401 --exclude=$(grep -v '^#' .gitignore | xargs | sed -e 's/ /,/g')`
-- Show the docs `http://localhost:12345/docs`
-- Show Redoc: `http://localhost:12345/redoc`
+- Show the docs `http://localhost:53050/docs`
+- Show Redoc: `http://localhost:53050/redoc`
