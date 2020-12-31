@@ -17,3 +17,7 @@ services:
     networks:
       evidence-backend-network:
         ipv4_address: 172.20.253.7
+
+networks:
+  evidence-backend-network:
+    external: true

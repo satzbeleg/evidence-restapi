@@ -39,7 +39,12 @@ print(resp.text)
 Call Docker Compose
 
 ```
-sudo docker-compose up
+docker network create --driver bridge \
+    --subnet=172.20.253.0/28 \
+    --ip-range=172.20.253.8/29 \
+    evidence-backend-network
+
+docker-compose up --build
 ```
 
 (Start docker daemon before, e.g. `open /Applications/Docker.app` on MacOS).
