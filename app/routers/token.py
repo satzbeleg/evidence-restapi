@@ -66,8 +66,10 @@ class TokenData(BaseModel):
 
 #
 # password handling
+# - we use "sha512_crypt" for Linux servers ("bcrypt" is for BSD)
+# - https://passlib.readthedocs.io/en/stable/narr/quickstart.html#making-a-decision
 #
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["sha512_crypt"], deprecated="auto")
 
 
 def verify_password(plain_password, hashed_password):
