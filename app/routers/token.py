@@ -35,8 +35,9 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 local_users_db = {
     "testuser1": {
         "username": "testuser1",
-        "hashed_password":
-            "$6$rounds=656000$LM/2/io2noVIc/Al$CamNMiA5vuDxHigTbN3XhB1o5jXFtE/Jwj0Y2Qz/JxToOJQT1iSG6Ixjfbj5tsgTgTVqjQgdXpjDatlCMWEdd1",  # "secret"
+        "hashed_password": (  # "secret"
+            "$6$rounds=656000$LM/2/io2noVIc/Al$CamNMiA5vuDxHigTbN3XhB1o5jXFt"
+            "E/Jwj0Y2Qz/JxToOJQT1iSG6Ixjfbj5tsgTgTVqjQgdXpjDatlCMWEdd1"),
         "disabled": False,
     }
 }
@@ -49,9 +50,11 @@ class UserMeta(BaseModel):
     username: str
     isactive: Optional[bool] = None
 
+
 class Token(BaseModel):
     access_token: str
     token_type: str
+
 
 class TokenData(BaseModel):
     username: Optional[str] = None
@@ -60,10 +63,10 @@ class TokenData(BaseModel):
 #
 # password handling
 # - we use "sha512_crypt" for Linux servers ("bcrypt" is for BSD)
-# - https://passlib.readthedocs.io/en/stable/narr/quickstart.html#making-a-decision
-# 
+# - https://passlib.readthedocs.io/en/stable/narr/quickstart.html
+#
 # localdb = LocalDb(local_users_db)
-# 
+#
 class LocalDb(object):
     def __init__(self, local_user_db: dict = {}):
         self.pwctx = CryptContext(schemes=["sha512_crypt"], deprecated="auto")
@@ -92,7 +95,7 @@ class LocalDb(object):
 class PsqlDb(object):
     def __init__(self, cfg_psql: dict):
         self.cfg_psql = cfg_psql
-    
+
     def is_configured(self):
         return True if self.cfg_psql else False
 
@@ -129,7 +132,7 @@ class PsqlDb(object):
 
 
 # Requires: SECRET_KEY, ALGORITHM
-def create_access_token(data: dict, 
+def create_access_token(data: dict,
                         expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
     if expires_delta:
@@ -156,7 +159,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserMeta:
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"})
-    
+
     # read the `username` from token
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
@@ -166,7 +169,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserMeta:
         # token_data = TokenData(username=username)
     except JWTError:
         raise credentials_exception
-    
+
     # check if the token's username exists in the PSQL DB (isactive)
     db = PsqlDb(config_auth_psql)
     if db.is_active_user(username):
@@ -202,7 +205,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
         )
     access_token_expires = timedelta(
         minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    
+
     access_token = create_access_token(
         data={"sub": username},
         expires_delta=access_token_expires)
