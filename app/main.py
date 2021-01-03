@@ -57,6 +57,6 @@ app.include_router(
     bestworst_random.router,
     prefix=f"/{version}/bestworst/random",
     tags=["sentences"],
-    dependencies=[Depends(token.get_current_active_user)],
+    dependencies=[Depends(token.get_current_user)],
     # responses={404: {"description": "Not found"}},
 )

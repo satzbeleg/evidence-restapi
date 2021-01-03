@@ -8,12 +8,12 @@ services:
     ports:
       - "55017:80"
     environment:
-      #- SSOT_PSQL_HOST=localhost
-      #- SSOT_PSQL_PORT=55015
-      - SSOT_PSQL_HOST=172.20.253.15
-      - SSOT_PSQL_PORT=5432
-      - SSOT_PSQL_USERNAME=postgres
-      - SSOT_PSQL_PASSWORD=password1234
+      #- EV_PSQL_HOST=localhost
+      #- EV_PSQL_PORT=55015
+      - EV_PSQL_HOST=172.20.253.15
+      - EV_PSQL_PORT=5432
+      - EV_PSQL_USERNAME=postgres
+      - EV_PSQL_PASSWORD=password1234
     networks:
       evidence-backend-network:
         ipv4_address: 172.20.253.7
