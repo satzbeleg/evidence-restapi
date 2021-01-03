@@ -1,10 +1,23 @@
 version: '3'
+
 services:
   evidence-restapi:
     build: 
       context: .
       dockerfile: Dockerfile
     ports:
-      - "53050:53050"
-  #otherservice:
-  #  image: "dockername:version"
+      - "55017:80"
+    environment:
+      #- EV_PSQL_HOST=localhost
+      #- EV_PSQL_PORT=55015
+      - EV_PSQL_HOST=172.20.253.15
+      - EV_PSQL_PORT=5432
+      - EV_PSQL_USERNAME=postgres
+      - EV_PSQL_PASSWORD=password1234
+    networks:
+      evidence-backend-network:
+        ipv4_address: 172.20.253.7
+
+networks:
+  evidence-backend-network:
+    external: true
