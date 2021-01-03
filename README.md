@@ -66,6 +66,12 @@ import requests
 data = {"username": "testuser1", "password": "secret"}
 resp = requests.post("http://localhost:55017/v1/auth/login", data)
 print(resp.text)
+
+TOKEN = resp.json()['access_token']
+headers = {'Authorization': f"Bearer {TOKEN}"}
+
+resp = requests.get("http://localhost:55017/v1/bestworst/random/5", headers=headers)
+print(resp.json())
 ```
 
 

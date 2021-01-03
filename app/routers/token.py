@@ -33,6 +33,13 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 #   hashed_pw = pwctx.hash(plain_pw)
 #
 local_users_db = {
+    "testuser0": {
+        "username": "testuser0",
+        "hashed_password": (  # "secret"
+            "$6$rounds=656000$LM/2/io2noVIc/Al$CamNMiA5vuDxHigTbN3XhB1o5jXFt"
+            "E/Jwj0Y2Qz/JxToOJQT1iSG6Ixjfbj5tsgTgTVqjQgdXpjDatlCMWEdd1"),
+        "disabled": False,
+    },
     "testuser1": {
         "username": "testuser1",
         "hashed_password": (  # "secret"
@@ -87,7 +94,7 @@ class LocalDb(object):
 
     def is_active_user(self, username):
         try:
-            return self.local_user_db[username]['disabled']
+            return not self.local_user_db[username]['disabled']
         except KeyError:
             return False
 
