@@ -26,8 +26,8 @@ Für den Fall, dass die Postgres Datenbank auf demselben Host läuft (Und nicht 
 ```
 export EV_PSQL_HOST=localhost
 export EV_PSQL_PORT=55015
-EV_PSQL_USERNAME=postgres
-EV_PSQL_PASSWORD=password1234
+export EV_PSQL_USERNAME=postgres
+export EV_PSQL_PASSWORD=password1234
 ```
 
 (3) Starte den FastAPI Server
@@ -55,7 +55,7 @@ TOKEN=$(cat mytokendata | python3 -c "import sys, json; print(json.load(sys.stdi
 
 curl -X GET "http://127.0.0.1:55017/v1/bestworst/random/4" \
     -H "accept: application/json" \
-    -H "Authorization: Bearer ${TOKEN}"    
+    -H "Authorization: Bearer ${TOKEN}"
 ```
 
 
