@@ -45,7 +45,7 @@ def read_root():
 app.include_router(
     token.router,
     prefix=f"/{version}/auth",
-    # tags=[""],
+    tags=["auth"],
     # dependencies=[Depends(get_token_header)],
     # responses={404: {"description": "Not found"}},
 )
@@ -56,7 +56,7 @@ app.include_router(
 app.include_router(
     bestworst_random.router,
     prefix=f"/{version}/bestworst/random",
-    # tags=[""],
+    tags=["bestworst"],
     dependencies=[Depends(token.get_current_user)],
     # responses={404: {"description": "Not found"}},
 )
@@ -66,7 +66,7 @@ app.include_router(
 app.include_router(
     bestworst_evaluations.router,
     prefix=f"/{version}/bestworst/evaluations",
-    # tags=[""],
+    tags=["bestworst"],
     dependencies=[Depends(token.get_current_user)],
     # responses={404: {"description": "Not found"}},
 )
