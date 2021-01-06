@@ -3,7 +3,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
 from .routers import (
-    bestworst_random, token
+    token, bestworst_random, bestworst_evaluations
 )
 
 
@@ -56,7 +56,17 @@ app.include_router(
 app.include_router(
     bestworst_random.router,
     prefix=f"/{version}/bestworst/random",
-    tags=["sentences"],
+    tags=["sentences", "random", "demo"],
+    dependencies=[Depends(token.get_current_user)],
+    # responses={404: {"description": "Not found"}},
+)
+
+
+# POST /bestworst/evaluations
+app.include_router(
+    bestworst_evaluations.router,
+    prefix=f"/{version}/bestworst/evaluations",
+    tags=["sentences", "evaluations"],
     dependencies=[Depends(token.get_current_user)],
     # responses={404: {"description": "Not found"}},
 )
