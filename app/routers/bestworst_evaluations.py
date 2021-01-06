@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Any
 # from pydantic import BaseModel
 
 import lorem
@@ -8,7 +8,8 @@ import uuid
 # Summary
 #   GET     /bestworst/{n_sents}/{m_sets}
 #               Return M sets of N random sentences
-#   POST    n.a.
+#   POST    /bestworst/evaluations
+#               Save a list of evaluated example sets
 #   PUT     n.a.
 #   DELETE  n.a.
 router = APIRouter()
