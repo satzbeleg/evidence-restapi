@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from typing import List, Dict, Optional, Any
-#from pydantic import BaseModel
+# from pydantic import BaseModel
 
 import lorem
 import uuid
@@ -14,10 +14,15 @@ import uuid
 router = APIRouter()
 
 
-#class ExampleSet(BaseModel):
+# class ExampleSet(BaseModel):
 
 
 @router.post("")
 async def save_evaluated_examples(data: List[Any]) -> dict:
-    return {'status': 'success', 'old-data': data}
+    stored_setids = []
+    for exampleset in data:
+        #print(exampleset)
+        stored_setids.append(exampleset['set_id'])
 
+    print(stored_setids)
+    return {'status': 'success', 'stored-setids': stored_setids}
