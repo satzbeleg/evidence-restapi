@@ -3,7 +3,8 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
 from .routers import (
-    token, bestworst_random, bestworst_evaluations
+    token, user_settings,
+    bestworst_random, bestworst_evaluations
 )
 
 
@@ -47,6 +48,16 @@ app.include_router(
     prefix=f"/{version}/auth",
     tags=["auth"],
     # dependencies=[Depends(get_token_header)],
+    # responses={404: {"description": "Not found"}},
+)
+
+
+# POST /user/settings
+app.include_router(
+    user_settings.router,
+    prefix=f"/{version}/user/settings",
+    tags=["user"],
+    dependencies=[Depends(token.get_current_user)],
     # responses={404: {"description": "Not found"}},
 )
 
