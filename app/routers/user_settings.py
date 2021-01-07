@@ -38,3 +38,27 @@ async def upsert_user_settings(settings: dict,
     finally:
         gc.collect()
         return {'status': 'success' if flag else 'failed'}
+
+
+@router.get("")
+async def get_user_settings(username: str = Depends(get_current_user)) -> dict:
+    try:
+        # connect to DB
+        conn = psycopg2.connect(**config_auth_psql)
+        cur = conn.cursor()
+        # run queries
+        cur.execute('''
+            SELECT settings FROM evidence.user_settings
+            WHERE username=%s;''', [username])
+        data = cur.fetchone()[0]
+        conn.commit()
+        # clean up
+        cur.close()
+        conn.close()
+        del cur, conn
+    except Exception as err:
+        print(err)
+        data = {}
+    finally:
+        gc.collect()
+        return data
