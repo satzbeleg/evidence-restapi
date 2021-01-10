@@ -4,7 +4,6 @@ from fastapi import APIRouter, HTTPException, Depends
 from .token import get_current_user
 
 import psycopg2
-import psycopg2.extras
 import json
 from ..config import config_auth_psql
 import gc
