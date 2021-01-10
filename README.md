@@ -61,6 +61,10 @@ curl -X GET "http://127.0.0.1:55017/v1/bestworst/random/4" \
 curl -X POST "http://localhost:55017/v1/user/settings" \
     -H  "accept: application/json" -H  "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" -d '{"hello":"world3"}'
+
+curl -X GET "http://localhost:55017/v1/user/settings" \
+    -H  "accept: application/json" -H  "Content-Type: application/json" \
+    -H "Authorization: Bearer ${TOKEN}"
 ```
 
 ## Authentifizierung in Python
