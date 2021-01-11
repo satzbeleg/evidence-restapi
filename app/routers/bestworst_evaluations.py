@@ -1,6 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-from typing import List, Dict, Any
-# from pydantic import BaseModel
+from typing import List, Any
 from .token import get_current_user
 
 import psycopg2
@@ -10,8 +9,7 @@ import json
 
 
 # Summary
-#   GET     /bestworst/{n_sents}/{m_sets}
-#               Return M sets of N random sentences
+#   GET     n.a.
 #   POST    /bestworst/evaluations
 #               Save a list of evaluated example sets
 #   PUT     n.a.
@@ -24,6 +22,30 @@ async def save_evaluated_examplesets(data: List[Any],
                                      username: str = Depends(get_current_user)
                                      ) -> dict:
     """Save evaluated example sets to database
+
+    Parameters:
+    -----------
+    data: List[Any]
+        A list of serialized JSON objects.
+        (We don't check it further with pydantic as the event history might
+         change depending of UI.)
+
+    username: str
+        The unique username stored in the JWT token.
+        See `app/routers/token.py:get_current_user`
+
+    Examples:
+    ---------
+        TOKEN="..."
+        curl -X POST "http://localhost:55017/v1/bestworst/evaluations" \
+            -H  "accept: application/json" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -d '[{"set-id": "147a6a02-2714-430a-a906-bdccc0c72b36",
+                  "ui-name": "bestworst456",
+                  "lemmata": ["Stichwort1", "Keyword2"],
+                  "event-history": [{"events": "many"}, {"and": "again"}],
+                  "state-sentid-map": {"idx0": "stateA", "idx1": "stateB"} }]'
 
     Notes:
     ------
@@ -50,10 +72,10 @@ async def save_evaluated_examplesets(data: List[Any],
         cur.execute((
             "INSERT INTO evidence.evaluated_bestworst(username, ui_name, "
             "set_id, lemmata, event_history, state_sentid_map "
-            f") VALUES {queryvalues} " 
+            f") VALUES {queryvalues} "
             "ON CONFLICT DO NOTHING "
             "RETURNING set_id;"))
-        
+
         stored_setids = cur.fetchall()
         flag = True
         conn.commit()
