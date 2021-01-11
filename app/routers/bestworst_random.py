@@ -3,6 +3,7 @@ from typing import List
 
 import lorem
 import uuid
+import random
 
 # Summary
 #   GET     /bestworst/random/{n_sents}
@@ -34,8 +35,9 @@ async def get_bestworst_random_sentence(n_sentences: int):
 async def get_bestworst_random_exampleset(n_sentences: int,
                                           n_examplesets: int):
     return [{
-            "set_id": str(uuid.uuid4()),
-            "examples": [
-                {"id": str(uuid.uuid4()), "text": lorem.sentence()}
-                for _ in range(n_sentences)
-            ]} for _ in range(n_examplesets)]
+        "set_id": str(uuid.uuid4()),
+        "lemmata": lorem.sentence().split(" ")[0:random.randint(1,2)],
+        "examples": [
+            {"id": str(uuid.uuid4()), "text": lorem.sentence()}
+            for _ in range(n_sentences)
+        ]} for _ in range(n_examplesets)]
