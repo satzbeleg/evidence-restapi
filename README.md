@@ -26,8 +26,8 @@ Für den Fall, dass die Postgres Datenbank auf demselben Host läuft (Und nicht 
 ```
 export EV_PSQL_HOST=localhost
 export EV_PSQL_PORT=55015
-EV_PSQL_USERNAME=postgres
-EV_PSQL_PASSWORD=password1234
+export EV_PSQL_USERNAME=postgres
+export EV_PSQL_PASSWORD=password1234
 ```
 
 (3) Starte den FastAPI Server
@@ -45,19 +45,27 @@ curl -X POST "http://0.0.0.0:55017/v1/auth/login" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -d "username=testuser2&password=secret2" \
     > mytokendata
-echo $mytokendata
+TOKEN=$(cat mytokendata | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")
+echo $TOKEN
 ```
 
 (5) Probiere andere Requests aus
 
 ```bash
-TOKEN=$(cat mytokendata | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")
-
 curl -X GET "http://127.0.0.1:55017/v1/bestworst/random/4" \
     -H "accept: application/json" \
-    -H "Authorization: Bearer ${TOKEN}"    
+    -H "Authorization: Bearer ${TOKEN}"
 ```
 
+```bash
+curl -X POST "http://localhost:55017/v1/user/settings" \
+    -H  "accept: application/json" -H  "Content-Type: application/json" \
+    -H "Authorization: Bearer ${TOKEN}" -d '{"hello":"world3"}'
+
+curl -X GET "http://localhost:55017/v1/user/settings" \
+    -H  "accept: application/json" -H  "Content-Type: application/json" \
+    -H "Authorization: Bearer ${TOKEN}"
+```
 
 ## Authentifizierung in Python
 

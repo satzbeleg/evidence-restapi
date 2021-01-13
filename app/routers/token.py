@@ -113,6 +113,7 @@ class PsqlDb(object):
             cur.execute("SELECT auth.validate_user(%s, %s);",
                         [username, plain_password])
             isvalid = cur.fetchone()[0]
+            conn.commit()
             cur.close()
             conn.close()
             del cur, conn
@@ -128,6 +129,7 @@ class PsqlDb(object):
             cur = conn.cursor()
             cur.execute("SELECT auth.is_active_user(%s);", [username])
             isactive = cur.fetchone()[0]
+            conn.commit()
             cur.close()
             conn.close()
             del cur, conn

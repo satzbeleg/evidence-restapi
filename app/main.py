@@ -3,7 +3,8 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 
 from .routers import (
-    bestworst_random, token
+    token, user_settings,
+    bestworst_random, bestworst_samples, bestworst_evaluations
 )
 
 
@@ -51,12 +52,41 @@ app.include_router(
 )
 
 
+# POST /user/settings
+app.include_router(
+    user_settings.router,
+    prefix=f"/{version}/user/settings",
+    tags=["user"],
+    dependencies=[Depends(token.get_current_user)],
+    # responses={404: {"description": "Not found"}},
+)
+
+
 # GET /bestworst/random/{n_sents}
 # GET /bestworst/random/{n_sents}/{m_sets}
 app.include_router(
     bestworst_random.router,
     prefix=f"/{version}/bestworst/random",
-    tags=["sentences"],
+    tags=["bestworst"],
+    dependencies=[Depends(token.get_current_user)],
+    # responses={404: {"description": "Not found"}},
+)
+
+# POST /bestworst/random/{n_sents}/{m_sets} and params
+app.include_router(
+    bestworst_samples.router,
+    prefix=f"/{version}/bestworst/samples",
+    tags=["bestworst"],
+    dependencies=[Depends(token.get_current_user)],
+    # responses={404: {"description": "Not found"}},
+)
+
+
+# POST /bestworst/evaluations
+app.include_router(
+    bestworst_evaluations.router,
+    prefix=f"/{version}/bestworst/evaluations",
+    tags=["bestworst"],
     dependencies=[Depends(token.get_current_user)],
     # responses={404: {"description": "Not found"}},
 )
