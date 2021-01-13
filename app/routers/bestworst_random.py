@@ -36,7 +36,7 @@ async def get_bestworst_random_exampleset(n_sentences: int,
                                           n_examplesets: int):
     return [{
         "set_id": str(uuid.uuid4()),
-        "lemmata": lorem.sentence().split(" ")[0:random.randint(1,2)],
+        "lemmata": lorem.sentence().split(" ")[0:random.randint(1, 2)],
         "examples": [
             {"id": str(uuid.uuid4()), "text": lorem.sentence()}
             for _ in range(n_sentences)
@@ -55,7 +55,7 @@ async def get_bestworst_random_exampleset2(n_sentences: int,
         keywords = []
         # keywords = lorem.sentence().split(" ")[0:random.randint(1,2)]
     print(keywords)
-    
+
     return [{
         "set_id": str(uuid.uuid4()),
         "lemmata": keywords,
