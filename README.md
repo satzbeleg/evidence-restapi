@@ -1,11 +1,12 @@
 # EVIDENCE Projekt: REST API zwischen Postgres DB und Vue Web App
 
-## Locale Installation im einer virtuellen Python Umgebung
+## Lokale Installation im einer virtuellen Python Umgebung
 (0) Installiere Ubuntu/Debian Pakete
 
 ```bash
 sudo apt update
 sudo apt install -y --no-install-recommends build-essential python3-dev python3-venv
+sudo apt install -y --no-install-recommends libpq-dev
 ```
 
 (1) Installiere FastAPI in der eigenen virtuellen Umgebung
@@ -23,7 +24,7 @@ pip3 install -r requirements.txt
 
 Für den Fall, dass die Postgres Datenbank auf demselben Host läuft (Und nicht via docker network)
 
-```
+```bash
 export EV_PSQL_HOST=localhost
 export EV_PSQL_PORT=55015
 export EV_PSQL_USERNAME=postgres
@@ -134,7 +135,7 @@ docker-compose up --build
 Check
 
 ```
-curl http://localhost:55017
+curl http://localhost:55017/v1/
 ```
 
 Notes: Only `main.py` is used in `Dockerfile`.
