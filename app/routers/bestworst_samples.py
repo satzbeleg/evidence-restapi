@@ -126,7 +126,9 @@ async def get_bestworst_example_sets(n_sentences: int,
     for row in items:
         items2.append({
             "id": row[0],
-            "text": dbsentences.get(row[0], 'n.a.'),
+            "text": dbsentences.get(row[0], (
+                f"SentenceID '{row[0]}' doesn't exist in the "
+                "SentenceStore API.")),
             "context": row[1],
             "score": row[2]})
 
