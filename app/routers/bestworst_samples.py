@@ -93,11 +93,11 @@ async def get_bestworst_example_sets(n_sentences: int,
         conn = psycopg2.connect(**config_ev_psql)
         cur = conn.cursor()
         # generate query string and run query
+        n_examples = (n_examplesets + 1) * max(1, n_sentences - 1)
         cur.execute((
             "SELECT sentence_id, context, score "
-            "FROM evidence.query_by_lemmata(%s::text[], "
-            f"{(n_examplesets + 1) * max(1, n_sentences - 1)}, NULL) "
-            "ORDER BY random();"), [keywords])
+            "FROM evidence.query_by_lemmata(%s::text[], %s::int, NULL) "
+            "ORDER BY random();"), [keywords, n_examples])
         items = cur.fetchall()
         conn.commit()
         # clean up
@@ -126,7 +126,9 @@ async def get_bestworst_example_sets(n_sentences: int,
     for row in items:
         items2.append({
             "id": row[0],
-            "text": dbsentences.get(row[0], 'n.a.'),
+            "text": dbsentences.get(row[0], (
+                f"SentenceID '{row[0]}' doesn't exist in the "
+                "SentenceStore API.")),
             "context": row[1],
             "score": row[2]})
 

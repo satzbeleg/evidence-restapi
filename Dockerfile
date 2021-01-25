@@ -12,6 +12,7 @@ FROM base AS builder
 # install build dependencies
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends build-essential python3-dev python3-venv
+RUN apt-get install -y --no-install-recommends libpq-dev
 
 # install virtual env
 ENV VIRTUAL_ENV=/opt/venv
