@@ -65,16 +65,18 @@ def get_sentence_text(sent_ids: List[str]) -> dict:
 
 
 # POST /bestworst/random/{n_sents}/{m_sets} and params
-@router.post("/{n_sentences}/{n_examplesets}")
+@router.post("/{n_sentences}/{n_examplesets}/{n_top}/{n_offset}")
 async def get_bestworst_example_sets(n_sentences: int,
                                      n_examplesets: int,
+                                     n_top: int,
+                                     n_offset: int,
                                      params: dict):
     """
 
     Examples:
     ---------
         TOKEN="..."
-        curl -X POST "http://localhost:55017/v1/bestworst/samples/4/3" \
+        curl -X POST "http://localhost:55017/v1/bestworst/samples/4/3/100/0" \
             -H  "accept: application/json" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${TOKEN}" \
@@ -96,8 +98,9 @@ async def get_bestworst_example_sets(n_sentences: int,
         n_examples = (n_examplesets + 1) * max(1, n_sentences - 1)
         cur.execute((
             "SELECT sentence_id, context, score "
-            "FROM evidence.query_by_lemmata(%s::text[], %s::int, NULL) "
-            "ORDER BY random();"), [keywords, n_examples])
+            "FROM evidence.query_by_lemmata(%s::text[], %s::int, %s::int) "
+            "ORDER BY random() LIMIT %s;"), 
+            [keywords, n_top, n_offset, n_examples])
         items = cur.fetchall()
         conn.commit()
         # clean up
