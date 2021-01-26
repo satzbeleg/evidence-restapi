@@ -64,17 +64,21 @@ async def save_evaluated_examplesets(data: List[Any],
 
         # generate query string and run query
         queryvalues = b",".join(cur.mogrify(
-            "(%s::text,%s::text,%s::uuid,%s::text[],%s::jsonb,%s::jsonb)", [
+            (
+                "(%s::text, %s::text, %s::uuid, %s::text[],"
+                "%s::jsonb, %s::jsonb, %s::jsonb)"
+            ), [
                 username, exset['ui-name'],
                 exset['set-id'], exset['lemmata'],
                 json.dumps(exset['event-history']),
-                json.dumps(exset['state-sentid-map'])
+                json.dumps(exset['state-sentid-map']),
+                json.dumps(exset['tracking-data'])
             ]) for exset in data).decode("utf-8")
         # print(queryvalues)
 
         cur.execute((
             "INSERT INTO evidence.evaluated_bestworst(username, ui_name, "
-            "set_id, lemmata, event_history, state_sentid_map "
+            "set_id, lemmata, event_history, state_sentid_map, tracking_data "
             f") VALUES {queryvalues} "
             "ON CONFLICT DO NOTHING "
             "RETURNING set_id;"))
