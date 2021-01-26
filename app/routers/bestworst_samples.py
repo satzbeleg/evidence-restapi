@@ -99,7 +99,7 @@ async def get_bestworst_example_sets(n_sentences: int,
         cur.execute((
             "SELECT sentence_id, context, score "
             "FROM evidence.query_by_lemmata(%s::text[], %s::int, %s::int) "
-            "ORDER BY random() LIMIT %s;"), 
+            "ORDER BY random() LIMIT %s;"),
             [keywords, n_top, n_offset, n_examples])
         items = cur.fetchall()
         conn.commit()
