@@ -49,11 +49,11 @@ def get_sentence_text(sent_ids: List[str]) -> dict:
         cur = conn.cursor()
         # query
         cur.execute('''
-            SELECT sentence_id, sentence_text, annotation 
+            SELECT sentence_id, sentence_text, annotation
             FROM evidence.sentences_cache
             WHERE sentence_id::text LIKE ANY(%s::text[]);
             ''', [sent_ids])
-        dbsentences = {key: {"text": txt, "annotation": ann} 
+        dbsentences = {key: {"text": txt, "annotation": ann}
                        for key, txt, ann in cur.fetchall()}
         conn.commit()
         # clean up
@@ -71,16 +71,16 @@ def get_sentence_text(sent_ids: List[str]) -> dict:
 def extract_spans(ann: dict, keywords: List[str]) -> List[Tuple[int, int]]:
     out = []
     if keywords:
-        # add from SPAN given lemma 
-        out.extend([e.get('span', None) for e in ann.get('spans',[])
-                    if e.get('lemma','') in keywords and e.get('span', None)])
+        # add from SPAN given lemma
+        out.extend([e.get('span', None) for e in ann.get('spans', [])
+                    if e.get('lemma', '') in keywords and e.get('span', None)])
         # add from TOKEN given lemma
-        out.extend([e.get('span', None) for e in ann.get('token',[])
-                    if e.get('lemma','') in keywords and e.get('span', None)])
+        out.extend([e.get('span', None) for e in ann.get('token', [])
+                    if e.get('lemma', '') in keywords and e.get('span', None)])
         # add from COMPOUND given lemma
         out.extend(list(itertools.chain(
-            *[e.get('spans', []) for e in ann.get('compound',[]) 
-              if e.get('lemma','') in keywords and e.get('spans', None)])))
+            *[e.get('spans', []) for e in ann.get('compound', [])
+              if e.get('lemma', '') in keywords and e.get('spans', None)])))
     # done
     return out
 
@@ -157,10 +157,10 @@ async def get_bestworst_example_sets(n_sentences: int,
             spans = extract_spans(tmp.get('annotation', {}), keywords)
         # append json to array
         items2.append({
-            "id": row[0], 
-            "text": text, 
+            "id": row[0],
+            "text": text,
             "spans": spans,
-            "context": row[1], 
+            "context": row[1],
             "score": row[2]
         })
 
