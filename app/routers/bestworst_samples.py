@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
-from typing import List
+from typing import List, Tuple
 import warnings
+import itertools
 
 import psycopg2
 from ..config import config_ev_psql
@@ -48,9 +49,12 @@ def get_sentence_text(sent_ids: List[str]) -> dict:
         cur = conn.cursor()
         # query
         cur.execute('''
-            SELECT sentence_id, sentence_text FROM evidence.sentences_cache
-            WHERE sentence_id::text LIKE ANY(%s::text[]); ''', [sent_ids])
-        dbsentences = {key: val for key, val in cur.fetchall()}
+            SELECT sentence_id, sentence_text, annotation
+            FROM evidence.sentences_cache
+            WHERE sentence_id::text LIKE ANY(%s::text[]);
+            ''', [sent_ids])
+        dbsentences = {key: {"text": txt, "annotation": ann}
+                       for key, txt, ann in cur.fetchall()}
         conn.commit()
         # clean up
         cur.close()
@@ -64,17 +68,36 @@ def get_sentence_text(sent_ids: List[str]) -> dict:
         return dbsentences
 
 
+def extract_spans(ann: dict, keywords: List[str]) -> List[Tuple[int, int]]:
+    out = []
+    if keywords:
+        # add from SPAN given lemma
+        out.extend([e.get('span', None) for e in ann.get('spans', [])
+                    if e.get('lemma', '') in keywords and e.get('span', None)])
+        # add from TOKEN given lemma
+        out.extend([e.get('span', None) for e in ann.get('token', [])
+                    if e.get('lemma', '') in keywords and e.get('span', None)])
+        # add from COMPOUND given lemma
+        out.extend(list(itertools.chain(
+            *[e.get('spans', []) for e in ann.get('compound', [])
+              if e.get('lemma', '') in keywords and e.get('spans', None)])))
+    # done
+    return out
+
+
 # POST /bestworst/random/{n_sents}/{m_sets} and params
-@router.post("/{n_sentences}/{n_examplesets}")
+@router.post("/{n_sentences}/{n_examplesets}/{n_top}/{n_offset}")
 async def get_bestworst_example_sets(n_sentences: int,
                                      n_examplesets: int,
+                                     n_top: int,
+                                     n_offset: int,
                                      params: dict):
     """
 
     Examples:
     ---------
         TOKEN="..."
-        curl -X POST "http://localhost:55017/v1/bestworst/samples/4/3" \
+        curl -X POST "http://localhost:55017/v1/bestworst/samples/4/3/100/0" \
             -H  "accept: application/json" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${TOKEN}" \
@@ -96,8 +119,9 @@ async def get_bestworst_example_sets(n_sentences: int,
         n_examples = (n_examplesets + 1) * max(1, n_sentences - 1)
         cur.execute((
             "SELECT sentence_id, context, score "
-            "FROM evidence.query_by_lemmata(%s::text[], %s::int, NULL) "
-            "ORDER BY random();"), [keywords, n_examples])
+            "FROM evidence.query_by_lemmata(%s::text[], %s::int, %s::int) "
+            "ORDER BY random() LIMIT %s;"),
+            [keywords, n_top, n_offset, n_examples])
         items = cur.fetchall()
         conn.commit()
         # clean up
@@ -124,13 +148,21 @@ async def get_bestworst_example_sets(n_sentences: int,
     # combine both sources into a list of jsons
     items2 = []
     for row in items:
+        # possible error message
+        text = f"SentenceID '{row[0]}' doesn't exist in the SentenceStore API."
+        spans = []
+        if row[0] in dbsentences:
+            tmp = dbsentences.get(row[0])
+            text = tmp.get('text', f"DB entry malformed for '{row[0]}'")
+            spans = extract_spans(tmp.get('annotation', {}), keywords)
+        # append json to array
         items2.append({
             "id": row[0],
-            "text": dbsentences.get(row[0], (
-                f"SentenceID '{row[0]}' doesn't exist in the "
-                "SentenceStore API.")),
+            "text": text,
+            "spans": spans,
             "context": row[1],
-            "score": row[2]})
+            "score": row[2]
+        })
 
     # split into overlapping example sets
     example_sets = []
