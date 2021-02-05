@@ -32,8 +32,8 @@ app.add_middleware(
         "https://localhost:8080",
         "http://localhost:8081",
         "https://localhost:8081",
-        "http://riker.bbaw.de:55017",
-        "https://riker.bbaw.de:55017"
+        "http://riker.bbaw.de:55018",
+        "https://riker.bbaw.de:55018"
     ],
     allow_credentials=True,
     allow_methods=["*"],
