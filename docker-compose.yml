@@ -10,7 +10,7 @@ services:
     environment:
       #- EV_PSQL_HOST=localhost
       #- EV_PSQL_PORT=55015
-      - EV_PSQL_HOST=172.20.253.15
+      - EV_PSQL_HOST=172.20.253.5
       - EV_PSQL_PORT=5432
       - EV_PSQL_USERNAME=postgres
       - EV_PSQL_PASSWORD=password1234
