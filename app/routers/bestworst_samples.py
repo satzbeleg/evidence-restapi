@@ -108,7 +108,7 @@ async def get_bestworst_example_sets(n_sentences: int,
     if params:
         keywords = params['lemmata']
     else:
-        keywords = []
+        return {"status": "failed", "msg": "Please search for a lemma."}
 
     # query database for example items
     try:
