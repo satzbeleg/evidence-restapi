@@ -6,3 +6,4 @@ python-jose[cryptography]>=3.2.0
 bcrypt>=3.2.0
 passlib[bcrypt]>=1.7.4
 psycopg2-binary>=2.8.6
+bwsample>=0.6.2
