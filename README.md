@@ -143,8 +143,10 @@ Notes: Only `main.py` is used in `Dockerfile`.
 
 ## Misc Commands
 - Check pip8 syntax: `flake8 --ignore=F401 --exclude=$(grep -v '^#' .gitignore | xargs | sed -e 's/ /,/g')`
+- Run unit tests: `pytest`
 - Show the docs `http://localhost:55017/docs`
 - Show Redoc: `http://localhost:55017/redoc`
+
 
 
 Clean Up code

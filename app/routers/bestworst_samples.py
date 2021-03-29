@@ -9,6 +9,8 @@ import gc
 
 import random
 import uuid
+import bwsample as bws
+
 
 # Summary
 #   GET     n.a.
@@ -116,7 +118,7 @@ async def get_bestworst_example_sets(n_sentences: int,
         conn = psycopg2.connect(**config_ev_psql)
         cur = conn.cursor()
         # generate query string and run query
-        n_examples = (n_examplesets + 1) * max(1, n_sentences - 1)
+        n_examples = max(n_examplesets, 1) * max(1, n_sentences - 1)
         cur.execute((
             "SELECT sentence_id, context, score "
             "FROM evidence.query_by_lemmata(%s::text[], %s::int, %s::int) "
@@ -164,25 +166,18 @@ async def get_bestworst_example_sets(n_sentences: int,
             "score": row[2]
         })
 
-    # split into overlapping example sets
+    # Sample overlapping example sets, each shuffled
+    # - see https://github.com/satzbeleg/bwsample#sampling
+    sampled_sets = bws.sample(
+        items2, n_items=n_sentences, method='overlap', shuffle=True)
+
+    # Add meta information for the app
     example_sets = []
-    for s in range(0, len(items2), max(1, n_sentences - 1)):
+    for bwset in sampled_sets:
         example_sets.append({
             "set_id": str(uuid.uuid4()),
             "lemmata": keywords,
-            "examples": items2[s:(s + n_sentences)]
+            "examples": bwset
         })
-
-    # draw 1-2 missing example items from other sets
-    n_missing = max(n_sentences - len(example_sets[-1]['examples']), 0)
-    for i in range(n_missing):
-        n = min(len(example_sets[i]['examples']), n_sentences)
-        j = random.randint(0, n - 1)
-        selected = example_sets[i]['examples'][j]
-        example_sets[-1]['examples'].append(selected)
-
-    # shuffle the examples
-    for i in range(len(example_sets)):
-        random.shuffle(example_sets[i]['examples'])
 
     return example_sets
