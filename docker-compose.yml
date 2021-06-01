@@ -8,21 +8,33 @@ services:
     command: sh -c "gunicorn app.main:app 
                       --bind 0.0.0.0:80 
                       --worker-class uvicorn.workers.UvicornH11Worker 
-                      --workers ${NUM_WORKERS}
+                      --workers ${RESTAPI_NUM_WORKERS}
                       --worker-tmp-dir /dev/shm"
     ports:
-      - "${API_PORT}:80"
+      - "${RESTAPI_HOST_PORT}:80"
     environment:
       #- EV_PSQL_HOST=localhost
       #- EV_PSQL_PORT=55015
       - EV_PSQL_HOST=172.20.253.5
       - EV_PSQL_PORT=5432
-      - EV_PSQL_USERNAME=postgres
-      - EV_PSQL_PASSWORD=password1234
+      - EV_PSQL_USERNAME=${POSTGRES_USER}
+      - EV_PSQL_PASSWORD=${POSTGRES_PASSWORD}
     networks:
       evidence-backend-network:
         ipv4_address: 172.20.253.7
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+        #window: 300s
 
 networks:
   evidence-backend-network:
-    external: true
+    external: true  # If the database was started before
+    #driver: bridge
+    #ipam:
+    #  driver: default
+    #  config:
+    #    - subnet: 172.20.253.0/28
+    #      ip_range: 172.20.253.8/29

@@ -122,14 +122,17 @@ SELECT auth.add_new_user_with_localpw('benutzer789', '$6$rounds=656000$PSAR1THK2
 Call Docker Compose
 
 ```sh
-docker network create --driver bridge \
-    --subnet=172.20.253.0/28 \
-    --ip-range=172.20.253.8/29 \
-    evidence-backend-network
+# Host Server's Port Settings
+export RESTAPI_HOST_PORT=55017
 
-export NUM_WORKERS=2
-export API_PORT=55017
-docker-compose up --build
+# Postgres Settings
+export POSTGRES_USER=postgres
+export POSTGRES_PASSWORD=password1234
+
+# REST API Settings
+export RESTAPI_NUM_WORKERS=2
+
+docker compose up --build
 ```
 
 (Start docker daemon before, e.g. `open /Applications/Docker.app` on MacOS).
