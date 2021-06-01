@@ -121,12 +121,14 @@ SELECT auth.add_new_user_with_localpw('benutzer789', '$6$rounds=656000$PSAR1THK2
 ## Run as docker container
 Call Docker Compose
 
-```
+```sh
 docker network create --driver bridge \
     --subnet=172.20.253.0/28 \
     --ip-range=172.20.253.8/29 \
     evidence-backend-network
 
+export NUM_WORKERS=2
+export API_PORT=55017
 docker-compose up --build
 ```
 
