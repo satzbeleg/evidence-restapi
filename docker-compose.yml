@@ -2,6 +2,7 @@ version: '3'
 
 services:
   evidence-restapi:
+    container_name: evidence-restapi
     build:   # build using Dockfile in this directory
       context: .
       dockerfile: Dockerfile
