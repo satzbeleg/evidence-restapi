@@ -118,14 +118,15 @@ SELECT auth.add_new_user_with_localpw('benutzer789', '$6$rounds=656000$PSAR1THK2
 
 
 
-## Run as docker container
-Call Docker Compose
+## Run REST API in a docker container
+The file `docker-compose.yml` contains an **configuration example** how to deploy the REST API as docker container. It is recommended to add this repository as git submodule to an deployment repository with a central Docker Compose configuration that suits your needs. 
 
 ```sh
 # Host Server's Port Settings
 export RESTAPI_HOST_PORT=55017
 
 # Postgres Settings
+# WARNING: You need to start the database container first
 export POSTGRES_USER=postgres
 export POSTGRES_PASSWORD=password1234
 
