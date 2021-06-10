@@ -17,3 +17,9 @@ config_ev_psql = {
     "user": os.getenv("EV_PSQL_USERNAME", default="postgres"),
     "password": os.getenv("EV_PSQL_PASSWORD", default=None)
 }
+
+# Web App Settings (e.g. CORS)
+config_web_app = {
+    "port": os.getenv("WEBAPP_HOSTPORT", default="8080"),
+    "host": os.getenv("WEBAPP_EXTERNAL_URL", default="localhost")
+}
