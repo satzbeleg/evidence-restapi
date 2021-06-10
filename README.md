@@ -1,4 +1,4 @@
-# EVIDENCE Projekt: REST API zwischen Postgres DB und Vue Web App
+# REST API (fastapi) Postgres DB und Vue Web App
 
 ## Lokale Installation im einer virtuellen Python Umgebung
 (0) Installiere Ubuntu/Debian Pakete
@@ -123,7 +123,7 @@ The file `docker-compose.yml` contains an **configuration example** how to deplo
 
 ```sh
 # Host Server's Port Settings
-export RESTAPI_HOST_PORT=55017
+export RESTAPI_HOSTPORT=55017
 
 # Postgres Settings
 # WARNING: You need to start the database container first
@@ -133,7 +133,11 @@ export POSTGRES_PASSWORD=password1234
 # REST API Settings
 export RESTAPI_NUM_WORKERS=2
 
-docker compose up --build
+# WEB APP Settings
+export WEBAPP_HOST_PORT=55018
+export WEBAPP_EXTERNAL=evidence.bbaw.de
+
+docker compose -p evidence -f network.yml -f restapi.yml up --build
 ```
 
 (Start docker daemon before, e.g. `open /Applications/Docker.app` on MacOS).

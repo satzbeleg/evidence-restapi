@@ -1,0 +1,11 @@
+version: '3.7'
+
+networks:
+  evidence-network:
+    name: evidence-network
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.253.0/24       # 172.20.253.1-254
+          ip_range: 172.20.253.128/25   # Dynamic: 172.20.253.129-254
