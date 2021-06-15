@@ -117,7 +117,7 @@ class PsqlDb(object):
         try:
             conn = psycopg2.connect(**self.cfg_psql)
             cur = conn.cursor()
-            cur.execute("SELECT auth.validate_user(%s, %s);",
+            cur.execute("SELECT auth.validate_username_password(%s, %s);",
                         [username, plain_password])
             isvalid = cur.fetchone()[0]
             conn.commit()
