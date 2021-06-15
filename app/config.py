@@ -2,24 +2,24 @@ import os
 
 # Authentification Database
 config_auth_psql = {
-    "host": os.getenv("EV_PSQL_HOST", default="localhost"),
-    "port": os.getenv("EV_PSQL_PORT", default="5432"),
-    "database": os.getenv("EV_PSQL_DATABASE", default=None),
-    "user": os.getenv("EV_PSQL_USERNAME", default="postgres"),
-    "password": os.getenv("EV_PSQL_PASSWORD", default=None)
+    "host": os.getenv("REST_DBAUTH_HOST", default="localhost"),
+    "port": os.getenv("REST_DBAUTH_PORT", default="5432"),
+    "database": os.getenv("REST_DBAUTH_DATABASE", default=None),
+    "user": os.getenv("REST_DBAUTH_USER", default="postgres"),
+    "password": os.getenv("REST_DBAUTH_PASSWORD", default=None)
 }
 
 # Postgres Evidence Database
 config_ev_psql = {
-    "host": os.getenv("EV_PSQL_HOST", default="localhost"),
-    "port": os.getenv("EV_PSQL_PORT", default="5432"),
-    "database": os.getenv("EV_PSQL_DATABASE", default=None),
-    "user": os.getenv("EV_PSQL_USERNAME", default="postgres"),
-    "password": os.getenv("EV_PSQL_PASSWORD", default=None)
+    "host": os.getenv("REST_DBAPPL_HOST", default="localhost"),
+    "port": os.getenv("REST_DBAPPL_PORT", default="5432"),
+    "database": os.getenv("REST_DBAPPL_DATABASE", default=None),
+    "user": os.getenv("REST_DBAPPL_USER", default="postgres"),
+    "password": os.getenv("REST_DBAPPL_PASSWORD", default=None)
 }
 
 # Web App Settings (e.g. CORS)
 config_web_app = {
-    "port": os.getenv("WEBAPP_HOSTPORT", default="8080"),
-    "host": os.getenv("WEBAPP_EXTERNAL_URL", default="localhost")
+    "port": os.getenv("CORS_WEBAPP_HOSTPORT", default="8080"),
+    "host": os.getenv("CORS_WEBAPP_EXTERNAL_URL", default="localhost")
 }

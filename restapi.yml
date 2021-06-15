@@ -9,19 +9,24 @@ services:
     command: sh -c "gunicorn app.main:app 
                       --bind 0.0.0.0:80 
                       --worker-class uvicorn.workers.UvicornH11Worker 
-                      --workers ${RESTAPI_NUM_WORKERS}
+                      --workers ${RESTAPI_NUM_WORKERS:-1}
                       --worker-tmp-dir /dev/shm"
     ports:
       - "${RESTAPI_HOSTPORT}:80"
     environment:
-      #- EV_PSQL_HOST=localhost
-      #- EV_PSQL_PORT=55015
-      - EV_PSQL_HOST=172.20.253.5
-      - EV_PSQL_PORT=5432
-      - EV_PSQL_USERNAME=${POSTGRES_USER}
-      - EV_PSQL_PASSWORD=${POSTGRES_PASSWORD}
-      - WEBAPP_HOSTPORT=${WEBAPP_HOSTPORT:-8080}
-      - WEBAPP_EXTERNAL_URL=${WEBAPP_EXTERNAL:-localhost}
+      # see database/dbauth.yml 
+      REST_DBAUTH_HOST: 172.20.253.7
+      REST_DBAUTH_PORT: 5432
+      REST_DBAUTH_USER: ${DBAUTH_USER:-postgres}
+      REST_DBAUTH_PASSWORD: ${DBAUTH_PASSWORD}
+      # see database/dbappl.yml
+      REST_DBAPPL_HOST: 172.20.253.5
+      REST_DBAPPL_PORT: 5432
+      REST_DBAPPL_USER: ${DBAPPL_USER:-postgres}
+      REST_DBAPPL_PASSWORD: ${DBAPPL_PASSWORD}
+      # see webapp/webapp.yml
+      CORS_WEBAPP_HOSTPORT: ${WEBAPP_HOSTPORT:-8080}
+      CORS_WEBAPP_EXTERNAL_URL: ${WEBAPP_EXTERNAL:-localhost}
     networks:
       evidence-network:
         ipv4_address: 172.20.253.2

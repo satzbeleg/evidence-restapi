@@ -30,12 +30,12 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=list(set([
         "http://localhost:8080",
-        f"http://localhost:${config_web_app.get('port')}",
+        f"http://localhost:{config_web_app.get('port')}",
         "http://127.0.0.1:8080",
-        f"http://127.0.0.1:${config_web_app.get('port')}",
+        f"http://127.0.0.1:{config_web_app.get('port')}",
         "http://0.0.0.0:8080",
-        f"http://0.0.0.0:${config_web_app.get('port')}",
-        f"https://${config_web_app.get('host')}:${config_web_app.get('port')}"
+        f"http://0.0.0.0:{config_web_app.get('port')}",
+        f"https://{config_web_app.get('host')}:{config_web_app.get('port')}"
     ])),
     allow_credentials=True,
     allow_methods=["*"],

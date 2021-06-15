@@ -5,7 +5,7 @@ from .token import get_current_user
 
 import psycopg2
 import json
-from ..config import config_auth_psql
+from ..config import config_ev_psql
 import gc
 
 
@@ -19,7 +19,7 @@ async def upsert_user_settings(settings: dict,
                                ) -> dict:
     try:
         # connect to DB
-        conn = psycopg2.connect(**config_auth_psql)
+        conn = psycopg2.connect(**config_ev_psql)
         cur = conn.cursor()
         # run queries
         cur.execute(
@@ -43,7 +43,7 @@ async def upsert_user_settings(settings: dict,
 async def get_user_settings(username: str = Depends(get_current_user)) -> dict:
     try:
         # connect to DB
-        conn = psycopg2.connect(**config_auth_psql)
+        conn = psycopg2.connect(**config_ev_psql)
         cur = conn.cursor()
         # run queries
         cur.execute('''

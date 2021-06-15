@@ -25,10 +25,18 @@ pip3 install -r requirements.txt
 Für den Fall, dass die Postgres Datenbank auf demselben Host läuft (Und nicht via docker network)
 
 ```bash
-export EV_PSQL_HOST=localhost
-export EV_PSQL_PORT=55015
-export EV_PSQL_USERNAME=postgres
-export EV_PSQL_PASSWORD=password1234
+export REST_DBAUTH_HOST=localhost
+export REST_DBAUTH_PORT=55014
+export REST_DBAUTH_USER=postgres
+export REST_DBAUTH_PASSWORD=password1234
+
+export REST_DBAPPL_HOST=localhost
+export REST_DBAPPL_PORT=55015
+export REST_DBAPPL_USER=postgres
+export REST_DBAPPL_PASSWORD=password1234
+
+export CORS_WEBAPP_HOSTPORT=55018
+export CORS_WEBAPP_EXTERNAL_URL=localhost
 ```
 
 (3) Starte den FastAPI Server
@@ -127,15 +135,16 @@ export RESTAPI_HOSTPORT=55017
 
 # Postgres Settings
 # WARNING: You need to start the database container first
-export POSTGRES_USER=postgres
-export POSTGRES_PASSWORD=password1234
+export DBAPPL_PASSWORD=password1234
+export DBAUTH_PASSWORD=password1234
 
 # REST API Settings
-export RESTAPI_NUM_WORKERS=2
+export RESTAPI_NUM_WORKERS=1
 
 # WEB APP Settings
-export WEBAPP_HOST_PORT=55018
-export WEBAPP_EXTERNAL=evidence.bbaw.de
+export WEBAPP_HOSTPORT=55018
+export WEBAPP_EXTERNAL_URL=localhost
+#export WEBAPP_EXTERNAL_URL=evidence.bbaw.de
 
 docker compose -p evidence -f network.yml -f restapi.yml up --build
 ```
