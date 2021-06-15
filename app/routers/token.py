@@ -91,7 +91,7 @@ class LocalDb(object):
         hashed_password = None
         for entry in self.local_user_db:
             if entry.get('username') == username:
-                  hashed_password = entry.get('hashed_password')
+                hashed_password = entry.get('hashed_password')
         if hashed_password is None:
             return None
         # compare supplied `plain_password` with the stored password hash
@@ -105,7 +105,7 @@ class LocalDb(object):
     def is_active_user(self, user_id: uuid.UUID) -> bool:
         for entry in self.local_user_db:
             if entry.get('user_id') == user_id:
-                return entry.get('isactive') 
+                return entry.get('isactive')
         return None
 
 
@@ -210,7 +210,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
     # validate username/password in PSQL DB
     db = PsqlDb(config_auth_psql)
     user_id = db.validate_user(form_data.username, form_data.password)
-    
+
     # try locally defined user
     if user_id is None:
         db2 = LocalDb(local_users_db)
