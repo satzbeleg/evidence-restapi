@@ -32,29 +32,31 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 #   pwctx = CryptContext(schemes=["sha512_crypt"], deprecated="auto")
 #   hashed_pw = pwctx.hash(plain_pw)
 #
-local_users_db = {
-    "testuser0": {
+local_users_db = [
+    {
+        "user_id": "3d376550-5265-4830-9812-5e9a84cdfa29",
         "username": "testuser0",
         "hashed_password": (  # "secret"
             "$6$rounds=656000$LM/2/io2noVIc/Al$CamNMiA5vuDxHigTbN3XhB1o5jXFt"
             "E/Jwj0Y2Qz/JxToOJQT1iSG6Ixjfbj5tsgTgTVqjQgdXpjDatlCMWEdd1"),
         "disabled": False,
     },
-    "testuser1": {
+    {
+        "user_id": "1faeb6bc-11e6-449b-a0a0-3354249176a9",
         "username": "testuser1",
         "hashed_password": (  # "secret"
             "$6$rounds=656000$LM/2/io2noVIc/Al$CamNMiA5vuDxHigTbN3XhB1o5jXFt"
             "E/Jwj0Y2Qz/JxToOJQT1iSG6Ixjfbj5tsgTgTVqjQgdXpjDatlCMWEdd1"),
         "disabled": False,
     }
-}
+]
 
 
 #
 # pydantic data schemes
 #
 class UserMeta(BaseModel):
-    username: str
+    user_id: str
     isactive: Optional[bool] = None
 
 
@@ -63,8 +65,8 @@ class Token(BaseModel):
     token_type: str
 
 
-class TokenData(BaseModel):
-    username: Optional[str] = None
+# class TokenData(BaseModel):
+#    user_id: Optional[str] = None
 
 
 #
@@ -86,15 +88,20 @@ class LocalDb(object):
         # retrieve `hashed_password` from local dict database
         # return `false` if `username` or `hashed_password` does not exist
         try:
-            hashed_password = self.local_user_db[username]['hashed_password']
+            hashed_password = [
+                entry.get('hashed_password') for entry in self.local_user_db 
+                if entry.get('username') == username][0]
         except KeyError:
             return False
         # compare supplied `plain_password` with the stored password hash
         return self.pwctx.verify(plain_password, hashed_password)
 
-    def is_active_user(self, username):
+    def is_active_user(self, user_id):
         try:
-            return not self.local_user_db[username]['disabled']
+            disabled = [
+                entry.get('disabled', False) for entry in self.local_user_db 
+                if entry.get('user_id') == user_id][0]
+            return not disabled
         except KeyError:
             return False
 
@@ -123,11 +130,11 @@ class PsqlDb(object):
             gc.collect()
             return isvalid
 
-    def is_active_user(self, username) -> bool:
+    def is_active_user(self, user_id) -> bool:
         try:
             conn = psycopg2.connect(**self.cfg_psql)
             cur = conn.cursor()
-            cur.execute("SELECT auth.is_active_user(%s);", [username])
+            cur.execute("SELECT auth.is_active_user(%s);", [user_id])
             isactive = cur.fetchone()[0]
             conn.commit()
             cur.close()
@@ -169,24 +176,24 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserMeta:
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"})
 
-    # read the `username` from token
+    # read the `user_id` from token
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        username: str = payload.get("sub")
-        if username is None:
+        user_id: str = payload.get("sub")
+        if user_id is None:
             raise credentials_exception
-        # token_data = TokenData(username=username)
+        # token_data = TokenData(user_id=user_id)
     except JWTError:
         raise credentials_exception
 
-    # check if the token's username exists in the PSQL DB (isactive)
+    # check if the token's user_id exists in the PSQL DB (isactive)
     db = PsqlDb(config_auth_psql)
-    if db.is_active_user(username):
-        return username
-    # check if the token's username is locally defined user (isactive)
+    if db.is_active_user(user_id):
+        return user_id
+    # check if the token's user_id is locally defined user (isactive)
     db2 = LocalDb(local_users_db)
-    if db2.is_active_user(username):
-        return username
+    if db2.is_active_user(user_id):
+        return user_id
     # otherwise
     raise HTTPException(status_code=400, detail="Inactive user")
 
@@ -195,18 +202,16 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserMeta:
 @router.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
     # validate username/password in PSQL DB
-    username = None
     db = PsqlDb(config_auth_psql)
-    if db.validate_user(form_data.username, form_data.password):
-        username = form_data.username
-    else:
-        # try locally defined user
+    user_id = db.validate_user(form_data.username, form_data.password)
+    
+    # try locally defined user
+    if user_id is None:
         db2 = LocalDb(local_users_db)
-        if db2.validate_user(form_data.username, form_data.password):
-            username = form_data.username
+        user_id = db2.validate_user(form_data.username, form_data.password)
 
     # throw an exception
-    if not username:
+    if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -216,7 +221,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
         minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
     access_token = create_access_token(
-        data={"sub": username},
+        data={"sub": user_id},
         expires_delta=access_token_expires)
 
     return {"access_token": access_token, "token_type": "bearer"}
