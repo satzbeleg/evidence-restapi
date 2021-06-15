@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 import psycopg2
 from ..config import config_auth_psql
 import gc
+import uuid
 
 
 # Settings
@@ -39,7 +40,7 @@ local_users_db = [
         "hashed_password": (  # "secret"
             "$6$rounds=656000$LM/2/io2noVIc/Al$CamNMiA5vuDxHigTbN3XhB1o5jXFt"
             "E/Jwj0Y2Qz/JxToOJQT1iSG6Ixjfbj5tsgTgTVqjQgdXpjDatlCMWEdd1"),
-        "disabled": False,
+        "isactive": True,
     },
     {
         "user_id": "1faeb6bc-11e6-449b-a0a0-3354249176a9",
@@ -47,7 +48,7 @@ local_users_db = [
         "hashed_password": (  # "secret"
             "$6$rounds=656000$LM/2/io2noVIc/Al$CamNMiA5vuDxHigTbN3XhB1o5jXFt"
             "E/Jwj0Y2Qz/JxToOJQT1iSG6Ixjfbj5tsgTgTVqjQgdXpjDatlCMWEdd1"),
-        "disabled": False,
+        "isactive": True,
     }
 ]
 
@@ -84,26 +85,28 @@ class LocalDb(object):
     def is_configured(self):
         return True if self.local_user_db else False
 
-    def validate_user(self, username, plain_password) -> bool:
+    def validate_user(self, username, plain_password) -> uuid.UUID:
         # retrieve `hashed_password` from local dict database
         # return `false` if `username` or `hashed_password` does not exist
-        try:
-            hashed_password = [
-                entry.get('hashed_password') for entry in self.local_user_db 
-                if entry.get('username') == username][0]
-        except KeyError:
-            return False
+        hashed_password = None
+        for entry in self.local_user_db:
+            if entry.get('username') == username:
+                  hashed_password = entry.get('hashed_password')
+        if hashed_password is None:
+            return None
         # compare supplied `plain_password` with the stored password hash
-        return self.pwctx.verify(plain_password, hashed_password)
+        if self.pwctx.verify(plain_password, hashed_password):
+            for entry in self.local_user_db:
+                if entry.get('username') == username:
+                    if entry.get('hashed_password') == hashed_password:
+                        return entry.get('user_id')
+        return None
 
-    def is_active_user(self, user_id):
-        try:
-            disabled = [
-                entry.get('disabled', False) for entry in self.local_user_db 
-                if entry.get('user_id') == user_id][0]
-            return not disabled
-        except KeyError:
-            return False
+    def is_active_user(self, user_id: uuid.UUID) -> bool:
+        for entry in self.local_user_db:
+            if entry.get('user_id') == user_id:
+                return entry.get('isactive') 
+        return None
 
 
 class PsqlDb(object):
@@ -113,28 +116,31 @@ class PsqlDb(object):
     def is_configured(self):
         return True if self.cfg_psql else False
 
-    def validate_user(self, username, plain_password) -> bool:
+    def validate_user(self, username, plain_password) -> uuid.UUID:
         try:
             conn = psycopg2.connect(**self.cfg_psql)
             cur = conn.cursor()
-            cur.execute("SELECT auth.validate_username_password(%s, %s);",
-                        [username, plain_password])
-            isvalid = cur.fetchone()[0]
+            cur.execute(
+                "SELECT auth.validate_username_password2(%s::text, %s::text);",
+                [username, plain_password])
+            user_id = cur.fetchone()[0]
             conn.commit()
             cur.close()
             conn.close()
             del cur, conn
+            user_id = str(uuid.UUID(str(user_id)))  # trigger Error or not
         except Exception:
-            isvalid = False
+            user_id = None
         finally:
             gc.collect()
-            return isvalid
+            return user_id
 
-    def is_active_user(self, user_id) -> bool:
+    def is_active_user(self, user_id: uuid.UUID) -> bool:
         try:
             conn = psycopg2.connect(**self.cfg_psql)
             cur = conn.cursor()
-            cur.execute("SELECT auth.is_active_user(%s);", [user_id])
+            cur.execute(
+                "SELECT auth.is_active_userid(%s::uuid);", [user_id])
             isactive = cur.fetchone()[0]
             conn.commit()
             cur.close()

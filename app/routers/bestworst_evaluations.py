@@ -65,11 +65,13 @@ async def save_evaluated_examplesets(data: List[Any],
         # generate query string and run query
         queryvalues = b",".join(cur.mogrify(
             (
-                "(%s::text, %s::text, %s::uuid, %s::text[],"
+                "(%s::uuid, %s::text, %s::uuid, %s::text[],"
                 "%s::jsonb, %s::jsonb, %s::jsonb)"
             ), [
-                user_id, exset['ui-name'],
-                exset['set-id'], exset['lemmata'],
+                user_id,
+                exset['ui-name'],
+                exset['set-id'],
+                exset['lemmata'],
                 json.dumps(exset['event-history']),
                 json.dumps(exset['state-sentid-map']),
                 json.dumps(exset['tracking-data'])
