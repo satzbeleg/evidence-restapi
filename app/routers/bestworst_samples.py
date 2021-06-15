@@ -21,13 +21,13 @@ router = APIRouter()
 
 
 def get_sentence_text(sent_ids: List[str]) -> dict:
-    """Download raw sentence text from SentenceStore API
+    """Download raw sentence text from ZDLStore API
 
     Parameters:
     -----------
     sent_ids : List[str]
         A list of UUID4 sentence_id that are compatible to the
-          SentenceStore API.
+          ZDLStore API.
 
     Return:
     -------
@@ -42,9 +42,9 @@ def get_sentence_text(sent_ids: List[str]) -> dict:
     """
     warnings.warn((
         "The `evidence.sentences_cache` table is used temporarily. "
-        "The plan is use the SentenceStore API lateron!"), FutureWarning)
+        "The plan is use the ZDLStore API lateron!"), FutureWarning)
 
-    # this will be replaced by an REST API call to the SentenceStore lateron
+    # this will be replaced by an REST API call to the ZDLStore lateron
     try:
         # connect to DB
         conn = psycopg2.connect(**config_ev_psql)
@@ -52,7 +52,7 @@ def get_sentence_text(sent_ids: List[str]) -> dict:
         # query
         cur.execute('''
             SELECT sentence_id, sentence_text, annotation
-            FROM evidence.sentences_cache
+            FROM zdlstore.sentences_cache
             WHERE sentence_id::text LIKE ANY(%s::text[]);
             ''', [sent_ids])
         dbsentences = {key: {"text": txt, "annotation": ann}
@@ -151,7 +151,7 @@ async def get_bestworst_example_sets(n_sentences: int,
     items2 = []
     for row in items:
         # possible error message
-        text = f"SentenceID '{row[0]}' doesn't exist in the SentenceStore API."
+        text = f"SentenceID '{row[0]}' doesn't exist in the ZDLStore API."
         spans = []
         if row[0] in dbsentences:
             tmp = dbsentences.get(row[0])

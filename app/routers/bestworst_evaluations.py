@@ -19,7 +19,7 @@ router = APIRouter()
 
 @router.post("")
 async def save_evaluated_examplesets(data: List[Any],
-                                     username: str = Depends(get_current_user)
+                                     user_id: str = Depends(get_current_user)
                                      ) -> dict:
     """Save evaluated example sets to database
 
@@ -30,8 +30,8 @@ async def save_evaluated_examplesets(data: List[Any],
         (We don't check it further with pydantic as the event history might
          change depending of UI.)
 
-    username: str
-        The unique username stored in the JWT token.
+    user_id: str
+        The UUID4 user_id stored in the JWT token.
         See `app/routers/token.py:get_current_user`
 
     Examples:
@@ -65,11 +65,13 @@ async def save_evaluated_examplesets(data: List[Any],
         # generate query string and run query
         queryvalues = b",".join(cur.mogrify(
             (
-                "(%s::text, %s::text, %s::uuid, %s::text[],"
+                "(%s::uuid, %s::text, %s::uuid, %s::text[],"
                 "%s::jsonb, %s::jsonb, %s::jsonb)"
             ), [
-                username, exset['ui-name'],
-                exset['set-id'], exset['lemmata'],
+                user_id,
+                exset['ui-name'],
+                exset['set-id'],
+                exset['lemmata'],
                 json.dumps(exset['event-history']),
                 json.dumps(exset['state-sentid-map']),
                 json.dumps(exset['tracking-data'])
@@ -77,7 +79,7 @@ async def save_evaluated_examplesets(data: List[Any],
         # print(queryvalues)
 
         cur.execute((
-            "INSERT INTO evidence.evaluated_bestworst(username, ui_name, "
+            "INSERT INTO evidence.evaluated_bestworst(user_id, ui_name, "
             "set_id, lemmata, event_history, state_sentid_map, tracking_data "
             f") VALUES {queryvalues} "
             "ON CONFLICT DO NOTHING "

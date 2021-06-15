@@ -1,0 +1,38 @@
+version: '3.7'
+
+services:
+  evidence-restapi:
+    container_name: evidence-restapi
+    build:   # build using Dockfile in this directory
+      context: ${RESTAPI_PATH:-.}/
+      dockerfile: Dockerfile
+    command: sh -c "gunicorn app.main:app 
+                      --bind 0.0.0.0:80 
+                      --worker-class uvicorn.workers.UvicornH11Worker 
+                      --workers ${RESTAPI_NUM_WORKERS:-1}
+                      --worker-tmp-dir /dev/shm"
+    ports:
+      - "${RESTAPI_HOSTPORT}:80"
+    environment:
+      # see database/dbauth.yml 
+      REST_DBAUTH_HOST: 172.20.253.7
+      REST_DBAUTH_PORT: 5432
+      REST_DBAUTH_USER: ${DBAUTH_USER:-postgres}
+      REST_DBAUTH_PASSWORD: ${DBAUTH_PASSWORD}
+      # see database/dbappl.yml
+      REST_DBAPPL_HOST: 172.20.253.5
+      REST_DBAPPL_PORT: 5432
+      REST_DBAPPL_USER: ${DBAPPL_USER:-postgres}
+      REST_DBAPPL_PASSWORD: ${DBAPPL_PASSWORD}
+      # see webapp/webapp.yml
+      CORS_WEBAPP_HOSTPORT: ${WEBAPP_HOSTPORT:-8080}
+      CORS_WEBAPP_EXTERNAL_URL: ${WEBAPP_EXTERNAL:-localhost}
+    networks:
+      evidence-network:
+        ipv4_address: 172.20.253.2
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+        #window: 300s

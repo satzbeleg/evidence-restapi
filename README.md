@@ -1,4 +1,4 @@
-# EVIDENCE Projekt: REST API zwischen Postgres DB und Vue Web App
+# REST API (fastapi) Postgres DB und Vue Web App
 
 ## Lokale Installation im einer virtuellen Python Umgebung
 (0) Installiere Ubuntu/Debian Pakete
@@ -25,10 +25,18 @@ pip3 install -r requirements.txt
 Für den Fall, dass die Postgres Datenbank auf demselben Host läuft (Und nicht via docker network)
 
 ```bash
-export EV_PSQL_HOST=localhost
-export EV_PSQL_PORT=55015
-export EV_PSQL_USERNAME=postgres
-export EV_PSQL_PASSWORD=password1234
+export REST_DBAUTH_HOST=localhost
+export REST_DBAUTH_PORT=55014
+export REST_DBAUTH_USER=postgres
+export REST_DBAUTH_PASSWORD=password1234
+
+export REST_DBAPPL_HOST=localhost
+export REST_DBAPPL_PORT=55015
+export REST_DBAPPL_USER=postgres
+export REST_DBAPPL_PASSWORD=password1234
+
+export CORS_WEBAPP_HOSTPORT=55018
+export CORS_WEBAPP_EXTERNAL_URL=localhost
 ```
 
 (3) Starte den FastAPI Server
@@ -118,18 +126,27 @@ SELECT auth.add_new_user_with_localpw('benutzer789', '$6$rounds=656000$PSAR1THK2
 
 
 
-## Run as docker container
-Call Docker Compose
+## Run REST API in a docker container
+The file `docker-compose.yml` contains an **configuration example** how to deploy the REST API as docker container. It is recommended to add this repository as git submodule to an deployment repository with a central Docker Compose configuration that suits your needs. 
 
 ```sh
-docker network create --driver bridge \
-    --subnet=172.20.253.0/28 \
-    --ip-range=172.20.253.8/29 \
-    evidence-backend-network
+# Host Server's Port Settings
+export RESTAPI_HOSTPORT=55017
 
-export NUM_WORKERS=2
-export API_PORT=55017
-docker-compose up --build
+# Postgres Settings
+# WARNING: You need to start the database container first
+export DBAPPL_PASSWORD=password1234
+export DBAUTH_PASSWORD=password1234
+
+# REST API Settings
+export RESTAPI_NUM_WORKERS=1
+
+# WEB APP Settings
+export WEBAPP_HOSTPORT=55018
+export WEBAPP_EXTERNAL_URL=localhost
+#export WEBAPP_EXTERNAL_URL=evidence.bbaw.de
+
+docker compose -p evidence -f network.yml -f restapi.yml up --build
 ```
 
 (Start docker daemon before, e.g. `open /Applications/Docker.app` on MacOS).

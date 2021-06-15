@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Depends
 
 from fastapi.middleware.cors import CORSMiddleware
+from .config import config_web_app
 
 from .routers import (
     token, user_settings,
@@ -27,14 +28,15 @@ app = FastAPI(
 # allow exceptions to develop on the same machine/host (i.e. localhost)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
+    allow_origins=list(set([
         "http://localhost:8080",
-        "https://localhost:8080",
-        "http://localhost:8081",
-        "https://localhost:8081",
-        "http://riker.bbaw.de:55018",
-        "https://riker.bbaw.de:55018"
-    ],
+        f"http://localhost:{config_web_app.get('port')}",
+        "http://127.0.0.1:8080",
+        f"http://127.0.0.1:{config_web_app.get('port')}",
+        "http://0.0.0.0:8080",
+        f"http://0.0.0.0:{config_web_app.get('port')}",
+        f"https://{config_web_app.get('host')}:{config_web_app.get('port')}"
+    ])),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
