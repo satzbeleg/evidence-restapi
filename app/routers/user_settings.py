@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 # from typing import List, Dict, Any
 # from pydantic import BaseModel
-from .token import get_current_user
+from .auth_legacy import get_current_user
 
 import psycopg2
 import json
