@@ -28,16 +28,16 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 #
 local_users_db = [
     {
-        "user_id": "3d376550-5265-4830-9812-5e9a84cdfa29",
-        "username": "testuser0",
+        "user_id": "34fb4f0e-7527-4834-b11a-c0e7e425fd9c",
+        "email": "testuser0@example.com",
         "hashed_password": (  # "secret"
             "$6$rounds=656000$LM/2/io2noVIc/Al$CamNMiA5vuDxHigTbN3XhB1o5jXFt"
             "E/Jwj0Y2Qz/JxToOJQT1iSG6Ixjfbj5tsgTgTVqjQgdXpjDatlCMWEdd1"),
         "isactive": True,
     },
     {
-        "user_id": "1faeb6bc-11e6-449b-a0a0-3354249176a9",
-        "username": "testuser1",
+        "user_id": "b410ecb0-182e-4a11-a893-9c7305527757",
+        "email": "testuser1@example.com",
         "hashed_password": (  # "secret"
             "$6$rounds=656000$LM/2/io2noVIc/Al$CamNMiA5vuDxHigTbN3XhB1o5jXFt"
             "E/Jwj0Y2Qz/JxToOJQT1iSG6Ixjfbj5tsgTgTVqjQgdXpjDatlCMWEdd1"),
@@ -78,19 +78,19 @@ class LocalDb(object):
     def is_configured(self):
         return True if self.local_user_db else False
 
-    def validate_user(self, username, plain_password) -> uuid.UUID:
+    def validate_user(self, email, plain_password) -> uuid.UUID:
         # retrieve `hashed_password` from local dict database
-        # return `false` if `username` or `hashed_password` does not exist
+        # return `false` if `email` or `hashed_password` does not exist
         hashed_password = None
         for entry in self.local_user_db:
-            if entry.get('username') == username:
+            if entry.get('email') == email:
                 hashed_password = entry.get('hashed_password')
         if hashed_password is None:
             return None
         # compare supplied `plain_password` with the stored password hash
         if self.pwctx.verify(plain_password, hashed_password):
             for entry in self.local_user_db:
-                if entry.get('username') == username:
+                if entry.get('email') == email:
                     if entry.get('hashed_password') == hashed_password:
                         return entry.get('user_id')
         return None
@@ -109,13 +109,13 @@ class PsqlDb(object):
     def is_configured(self):
         return True if self.cfg_psql else False
 
-    def validate_user(self, username, plain_password) -> uuid.UUID:
+    def validate_user(self, email, plain_password) -> uuid.UUID:
         try:
             conn = psycopg2.connect(**self.cfg_psql)
             cur = conn.cursor()
             cur.execute(
-                "SELECT auth.validate_username_password2(%s::text, %s::text);",
-                [username, plain_password])
+                "SELECT auth.validate_email_password2(%s::text, %s::text);",
+                [email, plain_password])
             user_id = cur.fetchone()[0]
             conn.commit()
             cur.close()
@@ -204,20 +204,20 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserMeta:
 # Requires: TOKEN_EXPIRY, authenticate_user
 @router.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
-    # validate username/password in PSQL DB
+    # validate email/password in PSQL DB
     db = PsqlDb(config_auth_psql)
-    user_id = db.validate_user(form_data.username, form_data.password)
+    user_id = db.validate_user(form_data.email, form_data.password)
 
     # try locally defined user
     if user_id is None:
         db2 = LocalDb(local_users_db)
-        user_id = db2.validate_user(form_data.username, form_data.password)
+        user_id = db2.validate_user(form_data.email, form_data.password)
 
     # throw an exception
     if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
+            detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(
@@ -238,7 +238,7 @@ async def read_users_me(current_user: UserMeta = Depends(get_current_user)):
 
 @router.get("/user/items/")
 async def read_own_items(current_user: UserMeta = Depends(get_current_user)):
-    return [{"item_id": "Foo", "owner": current_user.username}]
+    return [{"item_id": "Foo", "owner": current_user.email}]
 """
 
 

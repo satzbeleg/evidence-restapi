@@ -14,6 +14,9 @@ services:
     ports:
       - "${RESTAPI_HOSTPORT}:80"
     environment:
+      # Auth settings
+      RESTAPI_SECRET_KEY: ${RESTAPI_SECRET_KEY}
+      RESTAPI_TOKEN_EXPIRY: ${RESTAPI_TOKEN_EXPIRY:-1440}
       # see database/dbauth.yml 
       REST_DBAUTH_HOST: 172.20.253.7
       REST_DBAUTH_PORT: 5432

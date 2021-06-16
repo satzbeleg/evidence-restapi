@@ -5,7 +5,7 @@ import requests
 
 # get an global access token
 client = TestClient(app)
-resp = client.post(f"/{version}/auth/login",
+resp = client.post(f"/{version}/auth-legacy/login",
                    {"username": "testuser0", "password": "secret"})
 TOKEN = resp.json()['access_token']
 headers = {'Authorization': f"Bearer {TOKEN}"}
@@ -15,7 +15,7 @@ del resp
 def test1():
     client = TestClient(app)
     data = {"username": "testuser1", "password": "secret"}
-    response = client.post(f"/{version}/auth/login", data)
+    response = client.post(f"/{version}/auth-legacy/login", data)
     assert 'access_token' in response.json()
     assert response.json()['token_type'] == 'bearer'
 

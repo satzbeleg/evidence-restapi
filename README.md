@@ -49,7 +49,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 55017 --reload --log-level debug
 (4) Authentifiziere Dich mit dem Testkonto. Fordere einen Access Token an.
 
 ```bash
-curl -X POST "http://0.0.0.0:55017/v1/auth/login" \
+curl -X POST "http://0.0.0.0:55017/v1/auth-legacy/login" \
     -H "accept: application/json" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -d "username=testuser2&password=secret2" \
@@ -140,6 +140,8 @@ export DBAUTH_PASSWORD=password1234
 
 # REST API Settings
 export RESTAPI_NUM_WORKERS=1
+export RESTAPI_SECRET_KEY=$(openssl rand -hex 32)
+export RESTAPI_TOKEN_EXPIRY=1440  # in minutes
 
 # WEB APP Settings
 export WEBAPP_HOSTPORT=55018
