@@ -133,7 +133,7 @@ class PsqlDb(object):
             conn = psycopg2.connect(**self.cfg_psql)
             cur = conn.cursor()
             cur.execute(
-                "SELECT auth.is_active_userid(%s::uuid);", [user_id])
+                "SELECT auth.username_isactive(%s::uuid);", [user_id])
             isactive = cur.fetchone()[0]
             conn.commit()
             cur.close()
@@ -206,12 +206,12 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserMeta:
 async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
     # validate username/password in PSQL DB
     db = PsqlDb(config_auth_psql)
-    user_id = db.validate_user(form_data.username, form_data.password)
+    user_id = await db.validate_user(form_data.username, form_data.password)
 
     # try locally defined user
     if user_id is None:
         db2 = LocalDb(local_users_db)
-        user_id = db2.validate_user(form_data.username, form_data.password)
+        user_id = await db2.validate_user(form_data.username, form_data.password)
 
     # throw an exception
     if user_id is None:
