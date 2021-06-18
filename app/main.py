@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .config import config_web_app
 
 from .routers import (
-    auth_legacy, user_settings,
+    auth_legacy, auth_email, user_settings,
     bestworst_random, bestworst_samples, bestworst_evaluations
 )
 
@@ -57,6 +57,13 @@ app.include_router(
     # responses={404: {"description": "Not found"}},
 )
 
+app.include_router(
+    auth_email.router,
+    prefix=f"/{version}/auth",
+    tags=["auth"],
+    # dependencies=[Depends(get_token_header)],
+    # responses={404: {"description": "Not found"}},
+)
 
 # POST /user/settings
 app.include_router(

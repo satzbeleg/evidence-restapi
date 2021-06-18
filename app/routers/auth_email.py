@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from pydantic import BaseModel
 from ..config import config_auth_token
 
@@ -9,41 +8,20 @@ from typing import Optional, Union, List
 from datetime import datetime, timedelta
 
 import psycopg2
+import psycopg2.extras
+psycopg2.extras.register_uuid()  # to process UUIDs
 from ..config import config_auth_psql
 import gc
 import uuid
+
+import smtplib 
+from email.message import EmailMessage
+from ..config import cfg_mailer
 
 
 # Settings
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-
-# TODO: Replaces this with an actual database
-#
-# Hash a new password
-#   from passlib.context import CryptContext
-#   pwctx = CryptContext(schemes=["sha512_crypt"], deprecated="auto")
-#   hashed_pw = pwctx.hash(plain_pw)
-#
-local_users_db = [
-    {
-        "user_id": "34fb4f0e-7527-4834-b11a-c0e7e425fd9c",
-        "email": "testuser0@example.com",
-        "hashed_password": (  # "secret"
-            "$6$rounds=656000$LM/2/io2noVIc/Al$CamNMiA5vuDxHigTbN3XhB1o5jXFt"
-            "E/Jwj0Y2Qz/JxToOJQT1iSG6Ixjfbj5tsgTgTVqjQgdXpjDatlCMWEdd1"),
-        "isactive": True,
-    },
-    {
-        "user_id": "b410ecb0-182e-4a11-a893-9c7305527757",
-        "email": "testuser1@example.com",
-        "hashed_password": (  # "secret"
-            "$6$rounds=656000$LM/2/io2noVIc/Al$CamNMiA5vuDxHigTbN3XhB1o5jXFt"
-            "E/Jwj0Y2Qz/JxToOJQT1iSG6Ixjfbj5tsgTgTVqjQgdXpjDatlCMWEdd1"),
-        "isactive": True,
-    }
-]
 
 
 #
@@ -61,45 +39,6 @@ class Token(BaseModel):
 
 # class TokenData(BaseModel):
 #    user_id: Optional[str] = None
-
-
-#
-# password handling
-# - we use "sha512_crypt" for Linux servers ("bcrypt" is for BSD)
-# - https://passlib.readthedocs.io/en/stable/narr/quickstart.html
-#
-# localdb = LocalDb(local_users_db)
-#
-class LocalDb(object):
-    def __init__(self, local_user_db: dict = {}):
-        self.pwctx = CryptContext(schemes=["sha512_crypt"], deprecated="auto")
-        self.local_user_db = local_user_db
-
-    def is_configured(self):
-        return True if self.local_user_db else False
-
-    def validate_user(self, email, plain_password) -> uuid.UUID:
-        # retrieve `hashed_password` from local dict database
-        # return `false` if `email` or `hashed_password` does not exist
-        hashed_password = None
-        for entry in self.local_user_db:
-            if entry.get('email') == email:
-                hashed_password = entry.get('hashed_password')
-        if hashed_password is None:
-            return None
-        # compare supplied `plain_password` with the stored password hash
-        if self.pwctx.verify(plain_password, hashed_password):
-            for entry in self.local_user_db:
-                if entry.get('email') == email:
-                    if entry.get('hashed_password') == hashed_password:
-                        return entry.get('user_id')
-        return None
-
-    def is_active_user(self, user_id: uuid.UUID) -> bool:
-        for entry in self.local_user_db:
-            if entry.get('user_id') == user_id:
-                return entry.get('isactive')
-        return None
 
 
 class PsqlDb(object):
@@ -133,7 +72,7 @@ class PsqlDb(object):
             conn = psycopg2.connect(**self.cfg_psql)
             cur = conn.cursor()
             cur.execute(
-                "SELECT auth.is_active_userid(%s::uuid);", [user_id])
+                "SELECT auth.email_isactive(%s::uuid);", [user_id])
             isactive = cur.fetchone()[0]
             conn.commit()
             cur.close()
@@ -144,6 +83,60 @@ class PsqlDb(object):
         finally:
             gc.collect()
             return isactive
+
+    def add_new_email_account(self, email, plain_password) -> uuid.UUID:
+        try:
+            conn = psycopg2.connect(**self.cfg_psql)
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT auth.add_new_email_account(%s::text, %s::text);",
+                [email, plain_password])
+            user_id = cur.fetchone()[0]
+            conn.commit()
+            cur.close()
+            conn.close()
+            del cur, conn
+        except Exception:
+            user_id = None
+        finally:
+            gc.collect()
+            return user_id
+
+    def issue_verification_token(self, user_id: uuid.UUID) -> uuid.UUID:
+        try:
+            conn = psycopg2.connect(**self.cfg_psql)
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT auth.issue_verification_token(%s::uuid);",
+                [user_id])
+            verify_token = cur.fetchone()[0]
+            conn.commit()
+            cur.close()
+            conn.close()
+            del cur, conn
+        except Exception:
+            verify_token = None
+        finally:
+            gc.collect()
+            return verify_token
+    
+    def check_verification_token(self, verify_token: uuid.UUID) -> uuid.UUID:
+        try:
+            conn = psycopg2.connect(**self.cfg_psql)
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT auth.check_verification_token(%s::uuid);",
+                [verify_token])
+            user_id = cur.fetchone()[0]
+            conn.commit()
+            cur.close()
+            conn.close()
+            del cur, conn
+        except Exception:
+            user_id = None
+        finally:
+            gc.collect()
+            return user_id
 
 
 # Requires: SECRET_KEY, ALGORITHM
@@ -206,12 +199,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserMeta:
 async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
     # validate email/password in PSQL DB
     db = PsqlDb(config_auth_psql)
-    user_id = db.validate_user(form_data.email, form_data.password)
-
-    # try locally defined user
-    if user_id is None:
-        db2 = LocalDb(local_users_db)
-        user_id = db2.validate_user(form_data.email, form_data.password)
+    # validate email/password
+    user_id = db.validate_user(form_data.username, form_data.password)
 
     # throw an exception
     if user_id is None:
@@ -230,18 +219,54 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
     return {"access_token": access_token, "token_type": "bearer"}
 
 
-"""
-@router.get("/user")
-async def read_users_me(current_user: UserMeta = Depends(get_current_user)):
-    return current_user
+@router.post("/register")
+async def register(form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
+    # validate email/password in PSQL DB
+    db = PsqlDb(config_auth_psql)
+
+    # add new email/password based account
+    user_id = db.add_new_email_account(form_data.username, form_data.password)
+    # create a verification token
+    verify_token = db.issue_verification_token(user_id)
+
+    # Create E-Mail object
+    msg = EmailMessage()
+    URL = f"{cfg_mailer['RESTAPI_PUBLIC_URL']}/v1/auth/verify/{verify_token}"
+    msg.set_content((
+        "Please confirm your registration:\n"
+        f"<a href='{URL}'>{URL}</a>"
+    ))
+    msg['Subject'] = "Please confirm your registration"
+    msg['From'] = cfg_mailer["FROM_EMAIL"]
+    msg['To'] = form_data.username   # Is the Email
+
+    # Send Verification Mail
+    with smtplib.SMTP(cfg_mailer["SMTP_SERVER"],
+                      cfg_mailer["SMTP_PORT"]) as server:
+        if cfg_mailer["SMTP_TLS"] is not None:
+            server.starttls()
+        server.login(cfg_mailer["SMTP_USER"], cfg_mailer["SMTP_PASSWORD"])
+        server.send_message(msg)
+
+    return {"status": "sucess", "msg": "Verfication mail sent."}
 
 
-@router.get("/user/items/")
-async def read_own_items(current_user: UserMeta = Depends(get_current_user)):
-    return [{"item_id": "Foo", "owner": current_user.email}]
-"""
+@router.get("/verify/{verify_token}")
+async def verify(verify_token: uuid.UUID) -> dict:
+    # validate email/password in PSQL DB
+    db = PsqlDb(config_auth_psql)
+    # check v. token
+    user_id = db.check_verification_token(verify_token)
+    # return the result
+    if user_id is None:
+        return {"status": "failed", "msg": "Invalid verification token."}
+    else:
+        return {"status": "success", "msg": "New account verified."}
+
 
 
 # Help
 # - https://fastapi.tiangolo.com/tutorial/security/simple-oauth2/
 # - https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/
+# - https://github.com/frankie567/fastapi-users/issues/106#issuecomment-691427853
+

@@ -25,15 +25,18 @@ pip3 install -r requirements.txt
 Für den Fall, dass die Postgres Datenbank auf demselben Host läuft (Und nicht via docker network)
 
 ```bash
-export REST_DBAUTH_HOST=localhost
-export REST_DBAUTH_PORT=55014
-export REST_DBAUTH_USER=postgres
-export REST_DBAUTH_PASSWORD=password1234
+export RESTAPI_HOSTPORT=55017
+export RESTAPI_PUBLIC_URL="http://localhost:${RESTAPI_HOSTPORT}"
 
-export REST_DBAPPL_HOST=localhost
-export REST_DBAPPL_PORT=55015
-export REST_DBAPPL_USER=postgres
-export REST_DBAPPL_PASSWORD=password1234
+export DBAUTH_HOST=localhost
+export DBAUTH_PORT=55014
+export DBAUTH_USER=postgres
+export DBAUTH_PASSWORD=password1234
+
+export DBAPPL_HOST=localhost
+export DBAPPL_PORT=55015
+export DBAPPL_USER=postgres
+export DBAPPL_PASSWORD=password1234
 
 export CORS_WEBAPP_HOSTPORT=55018
 export CORS_WEBAPP_EXTERNAL_URL=localhost
@@ -50,8 +53,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 55017 --reload --log-level debug
 
 ```bash
 curl -X POST "http://0.0.0.0:55017/v1/auth-legacy/login" \
-    -H "accept: application/json" \
-    -H "Content-Type: application/x-www-form-urlencoded" \
+    -H "accept: application/json" -H "Content-Type: application/x-www-form-urlencoded" \
     -d "username=testuser2&password=secret2" \
     > mytokendata
 TOKEN=$(cat mytokendata | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")
@@ -76,12 +78,51 @@ curl -X GET "http://localhost:55017/v1/user/settings" \
     -H "Authorization: Bearer ${TOKEN}"
 ```
 
+## Authentifizierung mit Email und Email-Verifikation
+
+#### Workflow
+- In der UI trägt der Benutzer seine Email und gewünschtes Passwort ein und sendet es an die API
+- API: Email/PW wird an DB weitergeleitet
+- DB legt ein inaktives Benutzerkonto an, und gibt Verfikationstoken and API zurück.
+- API sendet Email mit Verfikationslink an die angegebene Email
+- Benutzer klickt auf Verfikationslink
+- API liest Verfikationstoken aus und sendet diesen zur DB
+- DB prüft Verfikationstoken und stellt Benutzerkonto auf aktiv.
+
+#### Lege neues Benutzerkonto an (register)
+Bitte ersetze `you@example.com` durch eine gültige Email.
+
+```sh
+curl -X POST "http://0.0.0.0:55017/v1/auth/register" \
+    -H "accept: application/json" -H "Content-Type: application/x-www-form-urlencoded" \
+    -d "username=you@example.com&password=secret2"
+```
+
+#### Bestätigungslink verarbeiten (verify)
+Bitte benutze den Link in deinem E-Mail Postfach.
+
+```sh
+curl -X GET "http://0.0.0.0:55017/v1/auth/verify/273950a0-a11a-461b-83b3-12ddd1b1d9b5"
+```
+
+#### Einloggen (login)
+Bitte ersetze `you@example.com` durch eine gültige Email.
+
+```bash
+curl -X POST "http://0.0.0.0:55017/v1/auth/login" \
+    -H "accept: application/json" -H "Content-Type: application/x-www-form-urlencoded" \
+    -d "username=you@example.com&password=secret2" > mytokendata
+TOKEN=$(cat mytokendata | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")
+echo $TOKEN
+```
+
+
 ## Authentifizierung in Python
 
 ```python
 import requests
 data = {"username": "testuser1", "password": "secret"}
-resp = requests.post("http://localhost:55017/v1/auth/login", data)
+resp = requests.post("http://localhost:55017/v1/auth-legacy/login", data)
 print(resp.text)
 
 TOKEN = resp.json()['access_token']

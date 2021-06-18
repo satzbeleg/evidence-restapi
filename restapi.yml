@@ -17,19 +17,20 @@ services:
       # Auth settings
       RESTAPI_SECRET_KEY: ${RESTAPI_SECRET_KEY}
       RESTAPI_TOKEN_EXPIRY: ${RESTAPI_TOKEN_EXPIRY:-1440}
+      RESTAPI_PUBLIC_URL: ${RESTAPI_PUBLIC_URL:-localhost}
       # see database/dbauth.yml 
-      REST_DBAUTH_HOST: 172.20.253.7
-      REST_DBAUTH_PORT: 5432
-      REST_DBAUTH_USER: ${DBAUTH_USER:-postgres}
-      REST_DBAUTH_PASSWORD: ${DBAUTH_PASSWORD}
+      DBAUTH_HOST: 172.20.253.7   # Use Internal Docker IP!
+      DBAUTH_PORT: 5432
+      DBAUTH_USER: ${DBAUTH_USER:-postgres}
+      DBAUTH_PASSWORD: ${DBAUTH_PASSWORD}
       # see database/dbappl.yml
-      REST_DBAPPL_HOST: 172.20.253.5
-      REST_DBAPPL_PORT: 5432
-      REST_DBAPPL_USER: ${DBAPPL_USER:-postgres}
-      REST_DBAPPL_PASSWORD: ${DBAPPL_PASSWORD}
+      DBAPPL_HOST: 172.20.253.5  # Use Internal Docker IP!
+      DBAPPL_PORT: 5432
+      DBAPPL_USER: ${DBAPPL_USER:-postgres}
+      DBAPPL_PASSWORD: ${DBAPPL_PASSWORD}
       # see webapp/webapp.yml
       CORS_WEBAPP_HOSTPORT: ${WEBAPP_HOSTPORT:-8080}
-      CORS_WEBAPP_EXTERNAL_URL: ${WEBAPP_EXTERNAL:-localhost}
+      CORS_WEBAPP_EXTERNAL_URL: ${WEBAPP_EXTERNAL:-localhost}   # rename to WEBAPP_PUBLIC_URL
     networks:
       evidence-network:
         ipv4_address: 172.20.253.2
