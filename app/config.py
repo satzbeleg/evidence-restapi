@@ -4,9 +4,10 @@ import secrets
 # Authentification Settings
 # How to create a SECRET_KEY: `openssl rand -hex 32`
 config_auth_token = {
-    "SECRET_KEY": os.getenv("RESTAPI_SECRET_KEY", default=secrets.token_hex(32)),
+    "SECRET_KEY": os.getenv(
+        "RESTAPI_SECRET_KEY", default=secrets.token_hex(32)),
     "ALGORITHM": os.getenv("RESTAPI_ALGORITHM", default="HS256"),
-    "TOKEN_EXPIRY": os.getenv("RESTAPI_TOKEN_EXPIRY", default=1440)  # in minutes
+    "TOKEN_EXPIRY": os.getenv("RESTAPI_TOKEN_EXPIRY", default=1440)  # minutes
 }
 
 # Authentification Mailer

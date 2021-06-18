@@ -10,7 +10,6 @@ from datetime import datetime, timedelta
 
 import psycopg2
 import psycopg2.extras
-psycopg2.extras.register_uuid()  # to process UUIDs
 from ..config import config_auth_psql
 import gc
 import uuid
@@ -19,6 +18,7 @@ import uuid
 # Settings
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+psycopg2.extras.register_uuid()  # to process UUIDs
 
 
 # TODO: Replaces this with an actual database
@@ -181,7 +181,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserMeta:
     # read the `user_id` from token
     try:
         payload = jwt.decode(
-            token, config_auth_token['SECRET_KEY'], 
+            token, config_auth_token['SECRET_KEY'],
             algorithms=[config_auth_token['ALGORITHM']]
         )
         user_id: str = payload.get("sub")

@@ -9,12 +9,11 @@ from datetime import datetime, timedelta
 
 import psycopg2
 import psycopg2.extras
-psycopg2.extras.register_uuid()  # to process UUIDs
 from ..config import config_auth_psql
 import gc
 import uuid
 
-import smtplib 
+import smtplib
 from email.message import EmailMessage
 from ..config import cfg_mailer
 
@@ -22,6 +21,7 @@ from ..config import cfg_mailer
 # Settings
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+psycopg2.extras.register_uuid()  # to process UUIDs
 
 
 #
@@ -119,7 +119,7 @@ class PsqlDb(object):
         finally:
             gc.collect()
             return verify_token
-    
+
     def check_verification_token(self, verify_token: uuid.UUID) -> uuid.UUID:
         try:
             conn = psycopg2.connect(**self.cfg_psql)
@@ -172,7 +172,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserMeta:
     # read the `user_id` from token
     try:
         payload = jwt.decode(
-            token, config_auth_token['SECRET_KEY'], 
+            token, config_auth_token['SECRET_KEY'],
             algorithms=[config_auth_token['ALGORITHM']]
         )
         user_id: str = payload.get("sub")
@@ -186,10 +186,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserMeta:
     db = PsqlDb(config_auth_psql)
     if db.is_active_user(user_id):
         return user_id
-    # check if the token's user_id is locally defined user (isactive)
-    db2 = LocalDb(local_users_db)
-    if db2.is_active_user(user_id):
-        return user_id
+
     # otherwise
     raise HTTPException(status_code=400, detail="Inactive user")
 
@@ -262,11 +259,3 @@ async def verify(verify_token: uuid.UUID) -> dict:
         return {"status": "failed", "msg": "Invalid verification token."}
     else:
         return {"status": "success", "msg": "New account verified."}
-
-
-
-# Help
-# - https://fastapi.tiangolo.com/tutorial/security/simple-oauth2/
-# - https://fastapi.tiangolo.com/tutorial/security/oauth2-jwt/
-# - https://github.com/frankie567/fastapi-users/issues/106#issuecomment-691427853
-
