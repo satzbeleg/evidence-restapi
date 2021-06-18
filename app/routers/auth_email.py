@@ -229,10 +229,7 @@ async def register(form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
     # Create E-Mail object
     msg = EmailMessage()
     URL = f"{cfg_mailer['RESTAPI_PUBLIC_URL']}/v1/auth/verify/{verify_token}"
-    msg.set_content((
-        "Please confirm your registration:\n"
-        f"<a href='{URL}'>{URL}</a>"
-    ))
+    msg.set_content(f"Please confirm your registration:\n{URL}")
     msg['Subject'] = "Please confirm your registration"
     msg['From'] = cfg_mailer["FROM_EMAIL"]
     msg['To'] = form_data.username   # Is the Email
