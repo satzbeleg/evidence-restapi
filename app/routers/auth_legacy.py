@@ -9,6 +9,8 @@ from typing import Optional, Union, List
 from datetime import datetime, timedelta
 
 import psycopg2
+import psycopg2.extras
+psycopg2.extras.register_uuid()  # to process UUIDs
 from ..config import config_auth_psql
 import gc
 import uuid
@@ -206,12 +208,12 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserMeta:
 async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
     # validate username/password in PSQL DB
     db = PsqlDb(config_auth_psql)
-    user_id = await db.validate_user(form_data.username, form_data.password)
+    user_id = db.validate_user(form_data.username, form_data.password)
 
     # try locally defined user
     if user_id is None:
         db2 = LocalDb(local_users_db)
-        user_id = await db2.validate_user(form_data.username, form_data.password)
+        user_id = db2.validate_user(form_data.username, form_data.password)
 
     # throw an exception
     if user_id is None:
