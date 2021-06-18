@@ -130,24 +130,11 @@ SELECT auth.add_new_user_with_localpw('benutzer789', '$6$rounds=656000$PSAR1THK2
 The file `docker-compose.yml` contains an **configuration example** how to deploy the REST API as docker container. It is recommended to add this repository as git submodule to an deployment repository with a central Docker Compose configuration that suits your needs. 
 
 ```sh
-# Host Server's Port Settings
-export RESTAPI_HOSTPORT=55017
+# load environment variables
+set -a
+source example.env.sh
 
-# Postgres Settings
-# WARNING: You need to start the database container first
-export DBAPPL_PASSWORD=password1234
-export DBAUTH_PASSWORD=password1234
-
-# REST API Settings
-export RESTAPI_NUM_WORKERS=1
-export RESTAPI_SECRET_KEY=$(openssl rand -hex 32)
-export RESTAPI_TOKEN_EXPIRY=1440  # in minutes
-
-# WEB APP Settings
-export WEBAPP_HOSTPORT=55018
-export WEBAPP_EXTERNAL_URL=localhost
-#export WEBAPP_EXTERNAL_URL=evidence.bbaw.de
-
+# start containers
 docker compose -p evidence -f network.yml -f restapi.yml up --build
 ```
 
