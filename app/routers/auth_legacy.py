@@ -1,14 +1,15 @@
 from fastapi import APIRouter, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
-import secrets
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
+from ..config import config_auth_token
 
 from typing import Optional, Union, List
 from datetime import datetime, timedelta
 
 import psycopg2
+import psycopg2.extras
 from ..config import config_auth_psql
 import gc
 import uuid
@@ -16,14 +17,8 @@ import uuid
 
 # Settings
 router = APIRouter()
-
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-
-# How to create a SECRET_KEY: `openssl rand -hex 32`
-SECRET_KEY = secrets.token_hex(32)
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+psycopg2.extras.register_uuid()  # to process UUIDs
 
 
 # TODO: Replaces this with an actual database
@@ -140,7 +135,7 @@ class PsqlDb(object):
             conn = psycopg2.connect(**self.cfg_psql)
             cur = conn.cursor()
             cur.execute(
-                "SELECT auth.is_active_userid(%s::uuid);", [user_id])
+                "SELECT auth.username_isactive(%s::uuid);", [user_id])
             isactive = cur.fetchone()[0]
             conn.commit()
             cur.close()
@@ -166,8 +161,9 @@ def create_access_token(data: dict,
 
     encoded_jwt = jwt.encode(
         to_encode,
-        SECRET_KEY,
-        algorithm=ALGORITHM)
+        config_auth_token['SECRET_KEY'],
+        algorithm=config_auth_token['ALGORITHM']
+    )
 
     return encoded_jwt
 
@@ -184,7 +180,10 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserMeta:
 
     # read the `user_id` from token
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(
+            token, config_auth_token['SECRET_KEY'],
+            algorithms=[config_auth_token['ALGORITHM']]
+        )
         user_id: str = payload.get("sub")
         if user_id is None:
             raise credentials_exception
@@ -204,7 +203,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserMeta:
     raise HTTPException(status_code=400, detail="Inactive user")
 
 
-# Requires: ACCESS_TOKEN_EXPIRE_MINUTES, authenticate_user
+# Requires: TOKEN_EXPIRY, authenticate_user
 @router.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
     # validate username/password in PSQL DB
@@ -224,7 +223,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
             headers={"WWW-Authenticate": "Bearer"},
         )
     access_token_expires = timedelta(
-        minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        minutes=config_auth_token['TOKEN_EXPIRY'])
 
     access_token = create_access_token(
         data={"sub": user_id},

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Any
-from .token import get_current_user
+from .auth_legacy import get_current_user
 
 import psycopg2
 from ..config import config_auth_psql
