@@ -32,7 +32,7 @@ config_auth_token = {
     "SECRET_KEY": os.getenv(
         "ACCESS_SECRET_KEY", default=secrets.token_hex(32)),
     "ALGORITHM": os.getenv("ACCESS_ALGORITHM", default="HS256"),
-    "TOKEN_EXPIRY": os.getenv("ACCESS_TOKEN_EXPIRY", default=1440)  # minutes
+    "TOKEN_EXPIRY": int(os.getenv("ACCESS_TOKEN_EXPIRY", default=1440))  # minutes
 }
 
 # Mailer settings for Verfication Mails
