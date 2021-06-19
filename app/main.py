@@ -35,7 +35,7 @@ app.add_middleware(
         f"http://127.0.0.1:{config_web_app.get('port')}",
         "http://0.0.0.0:8080",
         f"http://0.0.0.0:{config_web_app.get('port')}",
-        f"https://{config_web_app.get('host')}:{config_web_app.get('port')}"
+        f"https://{config_web_app.get('domain')}:{config_web_app.get('port')}"
     ])),
     allow_credentials=True,
     allow_methods=["*"],

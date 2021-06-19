@@ -1,5 +1,9 @@
 #!/bin/bash 
 
+# Public URLs exposed to the Internet (or Intranet)
+export PUBLIC_DOMAIN=localhost
+#export PUBLIC_DOMAIN=test.example.com
+
 # Host Server's Port Settings
 export RESTAPI_HOSTPORT=55017
 
@@ -14,7 +18,7 @@ export DBAPPL_PASSWORD=password1234
 # CORS Exemption Settings
 # - see webapp/webapp.yml
 export WEBAPP_HOSTPORT=55018
-export WEBAPP_PUBLIC_URL=localhost
+#export PUBLIC_DOMAIN=localhost
 
 # Authentification Database
 # - see database/dbauth.yml 

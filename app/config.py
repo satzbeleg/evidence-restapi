@@ -13,7 +13,7 @@ config_ev_psql = {
 # Web App Settings (e.g. CORS)
 config_web_app = {
     "port": os.getenv("CORS_WEBAPP_HOSTPORT", default="8080"),
-    "host": os.getenv("CORS_WEBAPP_PUBLIC_URL", default="localhost")
+    "domain": os.getenv("CORS_WEBAPP_DOMAIN", default="localhost")
 }
 
 # Authentification Database

@@ -24,7 +24,7 @@ services:
       # CORS Exemption Settings
       # - see webapp/webapp.yml
       CORS_WEBAPP_HOSTPORT: ${WEBAPP_HOSTPORT:-8080}
-      CORS_WEBAPP_PUBLIC_URL: ${WEBAPP_PUBLIC_URL:-localhost}
+      CORS_WEBAPP_DOMAIN: ${PUBLIC_DOMAIN:-localhost}
 
       # Authentification Database
       # - see database/dbauth.yml 
