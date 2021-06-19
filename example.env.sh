@@ -40,4 +40,4 @@ export FROM_EMAIL="nobody@example.com"
 
 echo "WARNING: Specify the real base URL of the WebApp lateron"
 export VERIFY_PUBLIC_URL="http://localhost:${RESTAPI_HOSTPORT}"
-#export VERIFY_PUBLIC_URL="http://${WEBAPP_PUBLIC_URL}:${WEBAPP_HOSTPORT}"
+#export VERIFY_PUBLIC_URL="https://${PUBLIC_DOMAIN}:${WEBAPP_HOSTPORT}"
