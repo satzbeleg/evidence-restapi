@@ -12,6 +12,7 @@ import psycopg2.extras
 from ..config import config_auth_psql
 import gc
 import uuid
+import logging
 
 import smtplib
 from email.message import EmailMessage
@@ -61,7 +62,8 @@ class PsqlDb(object):
             conn.close()
             del cur, conn
             user_id = str(uuid.UUID(str(user_id)))  # trigger Error or not
-        except Exception:
+        except Exception as e:
+            logging.error(e)
             user_id = None
         finally:
             gc.collect()
@@ -78,7 +80,8 @@ class PsqlDb(object):
             cur.close()
             conn.close()
             del cur, conn
-        except Exception:
+        except Exception as e:
+            logging.error(e)
             isactive = False
         finally:
             gc.collect()
@@ -96,7 +99,8 @@ class PsqlDb(object):
             cur.close()
             conn.close()
             del cur, conn
-        except Exception:
+        except Exception as e:
+            logging.error(e)
             user_id = None
         finally:
             gc.collect()
@@ -114,7 +118,8 @@ class PsqlDb(object):
             cur.close()
             conn.close()
             del cur, conn
-        except Exception:
+        except Exception as e:
+            logging.error(e)
             verify_token = None
         finally:
             gc.collect()
@@ -132,7 +137,8 @@ class PsqlDb(object):
             cur.close()
             conn.close()
             del cur, conn
-        except Exception:
+        except Exception as e:
+            logging.error(e)
             user_id = None
         finally:
             gc.collect()
@@ -226,9 +232,12 @@ async def register(form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
     # create a verification token
     verify_token = db.issue_verification_token(user_id)
 
+    if verify_token is None:
+        return {"status": "failed", "msg": "Cannot create token."}
+
     # Create E-Mail object
     msg = EmailMessage()
-    URL = f"{cfg_mailer['RESTAPI_PUBLIC_URL']}/v1/auth/verify/{verify_token}"
+    URL = f"{cfg_mailer['VERIFY_PUBLIC_URL']}/v1/auth/verify/{verify_token}"
     msg.set_content(f"Please confirm your registration:\n{URL}")
     msg['Subject'] = "Please confirm your registration"
     msg['From'] = cfg_mailer["FROM_EMAIL"]
