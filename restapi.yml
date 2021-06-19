@@ -14,23 +14,39 @@ services:
     ports:
       - "${RESTAPI_HOSTPORT}:80"
     environment:
-      # Auth settings
-      RESTAPI_SECRET_KEY: ${RESTAPI_SECRET_KEY}
-      RESTAPI_TOKEN_EXPIRY: ${RESTAPI_TOKEN_EXPIRY:-1440}
-      RESTAPI_PUBLIC_URL: ${RESTAPI_PUBLIC_URL:-localhost}
-      # see database/dbauth.yml 
-      DBAUTH_HOST: 172.20.253.7   # Use Internal Docker IP!
-      DBAUTH_PORT: 5432
-      DBAUTH_USER: ${DBAUTH_USER:-postgres}
-      DBAUTH_PASSWORD: ${DBAUTH_PASSWORD}
-      # see database/dbappl.yml
-      DBAPPL_HOST: 172.20.253.5  # Use Internal Docker IP!
+      # Application Database
+      # - see database/dbappl.yml
+      DBAPPL_HOST: 172.20.253.5
       DBAPPL_PORT: 5432
       DBAPPL_USER: ${DBAPPL_USER:-postgres}
       DBAPPL_PASSWORD: ${DBAPPL_PASSWORD}
-      # see webapp/webapp.yml
+
+      # CORS Exemption Settings
+      # - see webapp/webapp.yml
       CORS_WEBAPP_HOSTPORT: ${WEBAPP_HOSTPORT:-8080}
-      CORS_WEBAPP_EXTERNAL_URL: ${WEBAPP_EXTERNAL:-localhost}   # rename to WEBAPP_PUBLIC_URL
+      CORS_WEBAPP_PUBLIC_URL: ${WEBAPP_PUBLIC_URL:-localhost}
+
+      # Authentification Database
+      # - see database/dbauth.yml 
+      DBAUTH_HOST: 172.20.253.7
+      DBAUTH_PORT: 5432
+      DBAUTH_USER: ${DBAUTH_USER:-postgres}
+      DBAUTH_PASSWORD: ${DBAUTH_PASSWORD}
+
+      # Access Token Settings
+      ACCESS_SECRET_KEY: ${ACCESS_SECRET_KEY}
+      ACCESS_TOKEN_EXPIRY: ${ACCESS_TOKEN_EXPIRY:-1440}
+      ACCESS_ALGORITHM: ${ACCESS_ALGORITHM:-HS256}
+
+      # Mailer settings for Verfication Mails
+      SMTP_SERVER: ${SMTP_SERVER:-}  # e.g. "smtp.example.com"
+      SMTP_PORT: ${SMTP_PORT:-25}    # 587 (TLS) or 25 (unsecure); 465 (SSL) is not available
+      SMTP_TLS: ${SMTP_TLS:-0}       # i.e. "1" or "0"
+      SMTP_USER: ${SMTP_USER:-}      # usually just the username, in other cases the full email addr.
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      FROM_EMAIL: ${FROM_EMAIL:-}   # e.g. "nobody@example.com"
+      VERIFY_PUBLIC_URL: ${VERIFY_PUBLIC_URL:-}   # e.g. "https://mywebapp.com:12345"
+      
     networks:
       evidence-network:
         ipv4_address: 172.20.253.2

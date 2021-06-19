@@ -9,6 +9,7 @@ sudo apt install -y --no-install-recommends build-essential python3-dev python3-
 sudo apt install -y --no-install-recommends libpq-dev
 ```
 
+
 (1) Installiere FastAPI in der eigenen virtuellen Umgebung
 
 ```bash
@@ -20,36 +21,44 @@ pip3 install -r requirements-dev.txt
 pip3 install -r requirements.txt
 ```
 
-(2) Konfiguriere Postgres Variablen
 
-Für den Fall, dass die Postgres Datenbank auf demselben Host läuft (Und nicht via docker network)
+(2) Konfiguriere Umgebungsvariablen
+
+Insbesondere die SMTP-Einstellungen müssen angepasst werden. 
 
 ```bash
-export RESTAPI_HOSTPORT=55017
-export RESTAPI_PUBLIC_URL="http://localhost:${RESTAPI_HOSTPORT}"
+nano example.env.sh
+```
 
-export DBAUTH_HOST=localhost
-export DBAUTH_PORT=55014
-export DBAUTH_USER=postgres
-export DBAUTH_PASSWORD=password1234
+Lade die Umgebungsvariablen
+
+```bash
+set -a
+source example.env.sh
 
 export DBAPPL_HOST=localhost
 export DBAPPL_PORT=55015
 export DBAPPL_USER=postgres
-export DBAPPL_PASSWORD=password1234
 
-export CORS_WEBAPP_HOSTPORT=55018
-export CORS_WEBAPP_EXTERNAL_URL=localhost
+export DBAUTH_HOST=localhost
+export DBAUTH_PORT=55014
+export DBAUTH_USER=postgres
 ```
 
-(3) Starte den FastAPI Server
+
+(3) Starte die Datenbank Container
+
+Siehe `dbauth.yml` und `dbappl.yml`
+
+
+(4) Starte den FastAPI Server
 
 ```bash
 source .venv/bin/activate
 uvicorn app.main:app --host 0.0.0.0 --port 55017 --reload --log-level debug
 ```
 
-(4) Authentifiziere Dich mit dem Testkonto. Fordere einen Access Token an.
+(5) Authentifiziere Dich mit dem Testkonto. Fordere einen Access Token an.
 
 ```bash
 curl -X POST "http://0.0.0.0:55017/v1/auth-legacy/login" \
@@ -60,7 +69,7 @@ TOKEN=$(cat mytokendata | python3 -c "import sys, json; print(json.load(sys.stdi
 echo $TOKEN
 ```
 
-(5) Probiere andere Requests aus
+(6) Probiere andere Requests aus
 
 ```bash
 curl -X GET "http://127.0.0.1:55017/v1/bestworst/random/4" \
@@ -176,7 +185,8 @@ set -a
 source example.env.sh
 
 # start containers
-docker compose -p evidence -f network.yml -f restapi.yml up --build
+# - WARNING: Don't use the `docker compose` because it cannot process `ipv4_address`!
+docker-compose -p evidence2 -f network.yml -f restapi.yml up --build
 ```
 
 (Start docker daemon before, e.g. `open /Applications/Docker.app` on MacOS).
