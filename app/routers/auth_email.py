@@ -144,6 +144,26 @@ class PsqlDb(object):
             gc.collect()
             return user_id
 
+    def upsert_google_signin(self, gid, email: str) -> uuid.UUID:
+        try:
+            conn = psycopg2.connect(**self.cfg_psql)
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT auth.upsert_google_signin(%s::text, %s::text);",
+                [gid, email])
+            user_id = cur.fetchone()[0]
+            conn.commit()
+            cur.close()
+            conn.close()
+            del cur, conn
+            user_id = str(uuid.UUID(str(user_id)))  # trigger Error or not
+        except Exception as e:
+            logging.error(e)
+            user_id = None
+        finally:
+            gc.collect()
+            return user_id
+
 
 # Requires: SECRET_KEY, ALGORITHM
 def create_access_token(data: dict,
@@ -265,3 +285,28 @@ async def verify(verify_token: uuid.UUID) -> dict:
         return {"status": "failed", "msg": "Invalid verification token."}
     else:
         return {"status": "success", "msg": "New account verified."}
+
+
+# Requires: TOKEN_EXPIRY, authenticate_user
+@router.post("/google-signin")
+async def google_signin(gid, email: str) -> dict:
+    # validate email/password in PSQL DB
+    db = PsqlDb(config_auth_psql)
+    # validate email/password
+    user_id = db.upsert_google_signin(gid, email)
+
+    # throw an exception
+    if user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Cannot process Google OAuth Email and ID.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(
+        minutes=config_auth_token['TOKEN_EXPIRY'])
+
+    access_token = create_access_token(
+        data={"sub": user_id},
+        expires_delta=access_token_expires)
+
+    return {"access_token": access_token, "token_type": "bearer"}
