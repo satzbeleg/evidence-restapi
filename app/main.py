@@ -35,7 +35,7 @@ app.add_middleware(
         f"http://127.0.0.1:{config_web_app.get('port')}",
         "http://0.0.0.0:8080",
         f"http://0.0.0.0:{config_web_app.get('port')}",
-        f"https://{config_web_app.get('host')}:{config_web_app.get('port')}"
+        f"https://{config_web_app.get('domain')}:{config_web_app.get('port')}"
     ])),
     allow_credentials=True,
     allow_methods=["*"],
@@ -52,7 +52,6 @@ def read_root():
 app.include_router(
     auth_legacy.router,
     prefix=f"/{version}/auth-legacy",
-    tags=["auth"],
     # dependencies=[Depends(get_token_header)],
     # responses={404: {"description": "Not found"}},
 )
@@ -70,7 +69,7 @@ app.include_router(
     user_settings.router,
     prefix=f"/{version}/user/settings",
     tags=["user"],
-    dependencies=[Depends(auth_legacy.get_current_user)],
+    dependencies=[Depends(auth_email.get_current_user)],
     # responses={404: {"description": "Not found"}},
 )
 
@@ -81,7 +80,7 @@ app.include_router(
     bestworst_random.router,
     prefix=f"/{version}/bestworst/random",
     tags=["bestworst"],
-    dependencies=[Depends(auth_legacy.get_current_user)],
+    dependencies=[Depends(auth_email.get_current_user)],
     # responses={404: {"description": "Not found"}},
 )
 
@@ -90,7 +89,7 @@ app.include_router(
     bestworst_samples.router,
     prefix=f"/{version}/bestworst/samples",
     tags=["bestworst"],
-    dependencies=[Depends(auth_legacy.get_current_user)],
+    dependencies=[Depends(auth_email.get_current_user)],
     # responses={404: {"description": "Not found"}},
 )
 
@@ -100,6 +99,6 @@ app.include_router(
     bestworst_evaluations.router,
     prefix=f"/{version}/bestworst/evaluations",
     tags=["bestworst"],
-    dependencies=[Depends(auth_legacy.get_current_user)],
+    dependencies=[Depends(auth_email.get_current_user)],
     # responses={404: {"description": "Not found"}},
 )

@@ -12,6 +12,7 @@ import psycopg2.extras
 from ..config import config_auth_psql
 import gc
 import uuid
+import logging
 
 import smtplib
 from email.message import EmailMessage
@@ -41,6 +42,11 @@ class Token(BaseModel):
 #    user_id: Optional[str] = None
 
 
+class GapiUserMeta(BaseModel):
+    gid: str
+    email: str
+
+
 class PsqlDb(object):
     def __init__(self, cfg_psql: dict):
         self.cfg_psql = cfg_psql
@@ -61,7 +67,8 @@ class PsqlDb(object):
             conn.close()
             del cur, conn
             user_id = str(uuid.UUID(str(user_id)))  # trigger Error or not
-        except Exception:
+        except Exception as e:
+            logging.error(e)
             user_id = None
         finally:
             gc.collect()
@@ -78,7 +85,8 @@ class PsqlDb(object):
             cur.close()
             conn.close()
             del cur, conn
-        except Exception:
+        except Exception as e:
+            logging.error(e)
             isactive = False
         finally:
             gc.collect()
@@ -96,7 +104,8 @@ class PsqlDb(object):
             cur.close()
             conn.close()
             del cur, conn
-        except Exception:
+        except Exception as e:
+            logging.error(e)
             user_id = None
         finally:
             gc.collect()
@@ -114,7 +123,8 @@ class PsqlDb(object):
             cur.close()
             conn.close()
             del cur, conn
-        except Exception:
+        except Exception as e:
+            logging.error(e)
             verify_token = None
         finally:
             gc.collect()
@@ -132,7 +142,28 @@ class PsqlDb(object):
             cur.close()
             conn.close()
             del cur, conn
-        except Exception:
+        except Exception as e:
+            logging.error(e)
+            user_id = None
+        finally:
+            gc.collect()
+            return user_id
+
+    def upsert_google_signin(self, gid: str, email: str) -> uuid.UUID:
+        try:
+            conn = psycopg2.connect(**self.cfg_psql)
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT auth.upsert_google_signin(%s::text, %s::text);",
+                [gid, email])
+            user_id = cur.fetchone()[0]
+            conn.commit()
+            cur.close()
+            conn.close()
+            del cur, conn
+            user_id = str(uuid.UUID(str(user_id)))  # trigger Error or not
+        except Exception as e:
+            logging.error(e)
             user_id = None
         finally:
             gc.collect()
@@ -226,13 +257,13 @@ async def register(form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
     # create a verification token
     verify_token = db.issue_verification_token(user_id)
 
+    if verify_token is None:
+        return {"status": "failed", "msg": "Cannot create token."}
+
     # Create E-Mail object
     msg = EmailMessage()
-    URL = f"{cfg_mailer['RESTAPI_PUBLIC_URL']}/v1/auth/verify/{verify_token}"
-    msg.set_content((
-        "Please confirm your registration:\n"
-        f"<a href='{URL}'>{URL}</a>"
-    ))
+    URL = f"{cfg_mailer['VERIFY_PUBLIC_URL']}/v1/auth/verify/{verify_token}"
+    msg.set_content(f"Please confirm your registration:\n{URL}")
     msg['Subject'] = "Please confirm your registration"
     msg['From'] = cfg_mailer["FROM_EMAIL"]
     msg['To'] = form_data.username   # Is the Email
@@ -259,3 +290,28 @@ async def verify(verify_token: uuid.UUID) -> dict:
         return {"status": "failed", "msg": "Invalid verification token."}
     else:
         return {"status": "success", "msg": "New account verified."}
+
+
+# Requires: TOKEN_EXPIRY, authenticate_user
+@router.post("/google-signin")
+async def google_signin(params: GapiUserMeta) -> dict:
+    # validate email/password in PSQL DB
+    db = PsqlDb(config_auth_psql)
+    # validate email/password
+    user_id = db.upsert_google_signin(params.gid, params.email)
+
+    # throw an exception
+    if user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Cannot process Google OAuth Email and ID.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(
+        minutes=config_auth_token['TOKEN_EXPIRY'])
+
+    access_token = create_access_token(
+        data={"sub": user_id},
+        expires_delta=access_token_expires)
+
+    return {"access_token": access_token, "token_type": "bearer"}
