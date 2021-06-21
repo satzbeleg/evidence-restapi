@@ -52,7 +52,6 @@ def read_root():
 app.include_router(
     auth_email.router,
     prefix=f"/{version}/auth-legacy",
-    tags=["auth"],
     # dependencies=[Depends(get_token_header)],
     # responses={404: {"description": "Not found"}},
 )
