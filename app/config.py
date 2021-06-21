@@ -17,7 +17,7 @@ config_web_app = {
 }
 
 # Authentification Database
-# see database/dbauth.yml 
+# see database/dbauth.yml
 config_auth_psql = {
     "host": os.getenv("DBAUTH_HOST", default=None),  # localhost
     "port": os.getenv("DBAUTH_PORT", default=None),  # 5432
@@ -32,7 +32,7 @@ config_auth_token = {
     "SECRET_KEY": os.getenv(
         "ACCESS_SECRET_KEY", default=secrets.token_hex(32)),
     "ALGORITHM": os.getenv("ACCESS_ALGORITHM", default="HS256"),
-    "TOKEN_EXPIRY": int(os.getenv("ACCESS_TOKEN_EXPIRY", default=1440))  # minutes
+    "TOKEN_EXPIRY": int(os.getenv("ACCESS_TOKEN_EXPIRY", default=1440))
 }
 
 # Mailer settings for Verfication Mails
