@@ -42,6 +42,11 @@ class Token(BaseModel):
 #    user_id: Optional[str] = None
 
 
+class GapiUserMeta(BaseModel):
+    gid: str
+    email: str
+
+
 class PsqlDb(object):
     def __init__(self, cfg_psql: dict):
         self.cfg_psql = cfg_psql
@@ -144,7 +149,7 @@ class PsqlDb(object):
             gc.collect()
             return user_id
 
-    def upsert_google_signin(self, gid, email: str) -> uuid.UUID:
+    def upsert_google_signin(self, gid: str, email: str) -> uuid.UUID:
         try:
             conn = psycopg2.connect(**self.cfg_psql)
             cur = conn.cursor()
@@ -289,11 +294,11 @@ async def verify(verify_token: uuid.UUID) -> dict:
 
 # Requires: TOKEN_EXPIRY, authenticate_user
 @router.post("/google-signin")
-async def google_signin(gid, email: str) -> dict:
+async def google_signin(params: GapiUserMeta) -> dict:
     # validate email/password in PSQL DB
     db = PsqlDb(config_auth_psql)
     # validate email/password
-    user_id = db.upsert_google_signin(gid, email)
+    user_id = db.upsert_google_signin(params.gid, params.email)
 
     # throw an exception
     if user_id is None:
