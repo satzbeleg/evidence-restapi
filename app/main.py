@@ -6,7 +6,7 @@ from .config import config_web_app
 from .routers import (
     auth_legacy, auth_email, user_settings,
     bestworst_random, bestworst_samples, bestworst_evaluations,
-    interactivity_deleted, interactivity_examples
+    interactivity_deleted_episodes, interactivity_training_examples
 )
 
 
@@ -107,8 +107,8 @@ app.include_router(
 
 # POST /interactivity/deleted
 app.include_router(
-    interactivity_deleted.router,
-    prefix=f"/{version}/interactivity/deleted",
+    interactivity_deleted_episodes.router,
+    prefix=f"/{version}/interactivity/deleted-episodes",
     tags=["interactivity"],
     dependencies=[Depends(auth_email.get_current_user)],
     # responses={404: {"description": "Not found"}},
@@ -116,8 +116,8 @@ app.include_router(
 
 # POST /interactivity/examples
 app.include_router(
-    interactivity_examples.router,
-    prefix=f"/{version}/interactivity/examples",
+    interactivity_training_examples.router,
+    prefix=f"/{version}/interactivity/training-examples",
     tags=["interactivity"],
     dependencies=[Depends(auth_email.get_current_user)],
     # responses={404: {"description": "Not found"}},

@@ -38,20 +38,20 @@ async def get_examples_with_features(num_additions: int,
             querymodel = " ORDER BY tb.sentence_id, tb2.created_at DESC "
 
         # run query
-        cur.execute(("""
-            SELECT distinct on (tb.sentence_id) tb.sentence_id
-                , tb.context
-                , tb.score
-                , tb2.model_info 
-                , tb2.feature_vectors 
-            FROM (
-                SELECT sentence_id, context, score 
-                FROM evidence.query_by_lemmata(%s::text[], %s::int, %s::int) 
-                ORDER BY random()
-            ) tb
-            INNER JOIN zdlstore.feature_vectors tb2
-                    ON tb.sentence_id = tb2.sentence_id
-            """ + querymodel + " LIMIT %s ;"),
+        cur.execute("""
+SELECT distinct on (tb.sentence_id) tb.sentence_id
+     , tb.context
+     , tb.score
+     , tb2.model_info 
+     , tb2.feature_vectors 
+FROM (
+    SELECT sentence_id, context, score 
+    FROM evidence.query_by_lemmata(%s::text[], %s::int, %s::int) 
+    ORDER BY random()
+    ) tb
+INNER JOIN zdlstore.feature_vectors tb2
+        ON tb.sentence_id = tb2.sentence_id
+            """ + querymodel + " LIMIT %s ;",
             [keywords, n_top, n_offset, num_additions])
         items = cur.fetchall()
         conn.commit()
