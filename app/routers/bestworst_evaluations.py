@@ -3,7 +3,7 @@ from typing import List, Any
 from .auth_email import get_current_user
 
 import psycopg2
-from ..config import config_auth_psql
+from ..config import config_ev_psql
 import gc
 import json
 
@@ -59,7 +59,7 @@ async def save_evaluated_examplesets(data: List[Any],
     """
     try:
         # connect to DB
-        conn = psycopg2.connect(**config_auth_psql)
+        conn = psycopg2.connect(**config_ev_psql)
         cur = conn.cursor()
 
         # generate query string and run query
@@ -79,7 +79,7 @@ async def save_evaluated_examplesets(data: List[Any],
         # print(queryvalues)
 
         cur.execute((
-            "INSERT INTO evidence.evaluated_bestworst(user_id, ui_name, "
+            "INSERT INTO evidence.evaluated_bestworst(username, ui_name, "
             "set_id, lemmata, event_history, state_sentid_map, tracking_data "
             f") VALUES {queryvalues} "
             "ON CONFLICT DO NOTHING "
