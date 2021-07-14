@@ -10,8 +10,9 @@ import json
 
 router = APIRouter()
 
+
 @router.post("/{n_examples}/{n_top}/{n_offset}")
-async def get_examples_with_features(n_examples: int, 
+async def get_examples_with_features(n_examples: int,
                                      n_top: int,
                                      n_offset: int,
                                      params: dict) -> list:
@@ -42,17 +43,16 @@ async def get_examples_with_features(n_examples: int,
 SELECT distinct on (tb.sentence_id) tb.sentence_id
      , tb.context
      , tb.score
-     , tb2.feature_vectors 
-     , tb2.model_info 
+     , tb2.feature_vectors
+     , tb2.model_info
 FROM (
-    SELECT sentence_id, context, score 
-    FROM evidence.query_by_lemmata(%s::text[], %s::int, %s::int) 
+    SELECT sentence_id, context, score
+    FROM evidence.query_by_lemmata(%s::text[], %s::int, %s::int)
     ORDER BY random()
     ) tb
 INNER JOIN zdlstore.feature_vectors tb2
         ON tb.sentence_id = tb2.sentence_id
-            """ + querymodel + " LIMIT %s ;",
-            [keywords, n_top, n_offset, n_examples])
+""" + querymodel + " LIMIT %s ;", [keywords, n_top, n_offset, n_examples])
         items = cur.fetchall()
         conn.commit()
         # clean up
@@ -64,7 +64,6 @@ INNER JOIN zdlstore.feature_vectors tb2
         return {"status": "failed", "msg": err}
     finally:
         gc.collect()
-    
 
     # abort if no query results
     if len(items) == 0:

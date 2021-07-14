@@ -32,7 +32,8 @@ async def save_deleted_episodes(data: Dict[str, Any],
         # run insert query
         cur.execute((
             "INSERT INTO evidence.interactivity_deleted_episodes( "
-            " user_id, sentence_id, training_score_history, model_score_history, displayed "
+            "   user_id, sentence_id, training_score_history, "
+            "   model_score_history, displayed "
             f") VALUES {queryvalues} "
             "ON CONFLICT DO NOTHING "
             "RETURNING sentence_id;"))
@@ -53,4 +54,3 @@ async def save_deleted_episodes(data: Dict[str, Any],
         return {
             'status': 'success' if flag else 'failed',
             'stored-sentids': stored_sentids}
-
