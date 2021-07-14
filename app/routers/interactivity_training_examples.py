@@ -10,8 +10,8 @@ import json
 
 router = APIRouter()
 
-@router.post("/{num_additions}/{n_top}/{n_offset}")
-async def get_examples_with_features(num_additions: int, 
+@router.post("/{n_examples}/{n_top}/{n_offset}")
+async def get_examples_with_features(n_examples: int, 
                                      n_top: int,
                                      n_offset: int,
                                      params: dict) -> list:
@@ -42,8 +42,8 @@ async def get_examples_with_features(num_additions: int,
 SELECT distinct on (tb.sentence_id) tb.sentence_id
      , tb.context
      , tb.score
-     , tb2.model_info 
      , tb2.feature_vectors 
+     , tb2.model_info 
 FROM (
     SELECT sentence_id, context, score 
     FROM evidence.query_by_lemmata(%s::text[], %s::int, %s::int) 
@@ -52,7 +52,7 @@ FROM (
 INNER JOIN zdlstore.feature_vectors tb2
         ON tb.sentence_id = tb2.sentence_id
             """ + querymodel + " LIMIT %s ;",
-            [keywords, n_top, n_offset, num_additions])
+            [keywords, n_top, n_offset, n_examples])
         items = cur.fetchall()
         conn.commit()
         # clean up
@@ -67,7 +67,7 @@ INNER JOIN zdlstore.feature_vectors tb2
     
 
     # abort if no query results
-    if len(items) < n_sentences:
+    if len(items) == 0:
         return {"status": "failed", "msg": "no sentences found."}
 
     # download sentence_text
