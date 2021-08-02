@@ -27,14 +27,14 @@ pip3 install -r requirements.txt
 Insbesondere die SMTP-Einstellungen müssen angepasst werden. 
 
 ```bash
-nano example.env.sh
+nano defaults.env.sh
 ```
 
 Lade die Umgebungsvariablen
 
 ```bash
 set -a
-source example.env.sh
+source defaults.env.sh
 
 export DBAPPL_HOST=localhost
 export DBAPPL_PORT=55015
@@ -182,7 +182,7 @@ The file `docker-compose.yml` contains an **configuration example** how to deplo
 ```sh
 # load environment variables
 set -a
-source example.env.sh
+source defaults.env.sh
 
 # start containers
 # - WARNING: Don't use the `docker compose` because it cannot process `ipv4_address`!
