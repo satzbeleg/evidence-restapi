@@ -1,4 +1,15 @@
-# REST API (fastapi) Postgres DB und Vue Web App
+# EVIDENCE project - REST API (fastapi)
+
+
+## Purpose
+The REST API connects the [databases](https://github.com/satzbeleg/evidence-database) and the [web app](https://github.com/satzbeleg/evidence-app).
+
+## Installation
+Please follow the instruction of the [deployment repository](https://github.com/satzbeleg/evidence-deploy).
+
+
+## Local Development
+
 
 ## Lokale Installation im einer virtuellen Python Umgebung
 (0) Installiere Ubuntu/Debian Pakete
@@ -223,4 +234,13 @@ rm -r .pytest_cache
 # delete virtual env
 rm -r .venv
 ```
+
+
+# Appendix
+
+## Support
+Please [open an issue](https://github.com/satzbeleg/evidence-restapi/issues/new) for support.
+
+## Contributing
+Please contribute using [Github Flow](https://guides.github.com/introduction/flow/). Create a branch, add commits, and [open a pull request](https://github.com/satzbeleg/evidence-restapi/compare/).
 
