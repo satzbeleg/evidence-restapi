@@ -7,7 +7,7 @@ import psycopg2
 from ..config import config_ev_psql
 import gc
 
-import random
+# import random
 import uuid
 import bwsample as bws
 
