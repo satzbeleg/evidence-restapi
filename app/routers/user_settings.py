@@ -17,6 +17,21 @@ router = APIRouter()
 async def upsert_user_settings(settings: dict,
                                username: str = Depends(get_current_user)
                                ) -> dict:
+    """ Receive user settings updates from App and store to database
+
+    Parameters:
+    -----------
+    settings : dict
+        The JSON with all the user settings received from the app.
+
+    username : str (uuid.UUID4)
+        User ID
+
+    Return:
+    -------
+    dict
+        Status message
+    """
     try:
         # connect to DB
         conn = psycopg2.connect(**config_ev_psql)
