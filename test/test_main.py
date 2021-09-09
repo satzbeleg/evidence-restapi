@@ -32,4 +32,3 @@ def test3():
     assert response.status_code == 200
     assert len(response.json()[0]["examples"]) == 4
     assert len(response.json()) == 10
-
