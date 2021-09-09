@@ -261,13 +261,13 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
     Parameters:
     -----------
     form_data : OAuth2PasswordRequestForm
-        Contains email address (form_data.username) and 
+        Contains email address (form_data.username) and
           password (form_data.password)
-    
+
     Global Variables:
     -----------------
         config_auth_token['TOKEN_EXPIRY']
-    
+
     Examples:
     ---------
     curl -X POST "http://0.0.0.0:55017/v1/auth/login" \
