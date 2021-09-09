@@ -1,5 +1,15 @@
 # EVIDENCE project - REST API (fastapi)
 
+Table of contents
+
+- [Purpose](#purpose)
+- [Installation](#installation)
+- [Local Development](#local-development)
+- [Unit Testing](#unit-testing)
+- [Usage Examples](#usage-examples)
+- [Authentication Process](#authentication-process)
+- [Appendix](#appendix)
+
 
 ## Purpose
 The REST API connects the [databases](https://github.com/satzbeleg/evidence-database) and the [web app](https://github.com/satzbeleg/evidence-app).
@@ -9,10 +19,14 @@ Please follow the instruction of the [deployment repository](https://github.com/
 
 
 ## Local Development
+1. [Install Ubuntu / Debian packages]()
+2. [Install FastAPI in a seperate virtual environment]()
+3. [Configure environment variables]()
+4. [Start the database container]()
+5. [Start the FastAPI Server]()
 
 
-## Lokale Installation im einer virtuellen Python Umgebung
-(0) Installiere Ubuntu/Debian Pakete
+### Install Ubuntu / Debian packages
 
 ```bash
 sudo apt update
@@ -21,31 +35,24 @@ sudo apt install -y --no-install-recommends libpq-dev
 ```
 
 
-(1) Installiere FastAPI in der eigenen virtuellen Umgebung
+### Install FastAPI in a seperate virtual environment
 
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip3 install --upgrade pip
-pip3 install -r requirements-server.txt
-pip3 install -r requirements-dev.txt
 pip3 install -r requirements.txt
+pip3 install -r requirements-dev.txt
 ```
 
 
-(2) Konfiguriere Umgebungsvariablen
-
-Insbesondere die SMTP-Einstellungen müssen angepasst werden. 
-
-```bash
-nano defaults.env.sh
-```
-
-Lade die Umgebungsvariablen
+### Configure environment variables
+In particular, the SMTP settings must be adapted.
 
 ```bash
 set -a
 source defaults.env.sh
+# source specific.env.sh
 
 export DBAPPL_HOST=localhost
 export DBAPPL_PORT=55015
@@ -57,38 +64,78 @@ export DBAUTH_USER=postgres
 ```
 
 
-(3) Starte die Datenbank Container
+### Start the database container
+Follow instructions in [databases](https://github.com/satzbeleg/evidence-database) or [deployment repository](https://github.com/satzbeleg/evidence-deploy) (without loading `restapi.yml`)
 
-Siehe `dbauth.yml` und `dbappl.yml`
 
-
-(4) Starte den FastAPI Server
+### Start the FastAPI Server
 
 ```bash
 source .venv/bin/activate
 uvicorn app.main:app --host 0.0.0.0 --port 55017 --reload --log-level debug
 ```
 
-(5) Authentifiziere Dich mit dem Testkonto. Fordere einen Access Token an.
+Open [http://localhost:55017/v1/docs](http://localhost:55017/v1/docs) in your browser.
+
+
+### Check if the docker configuration of the REST API works
+
+```sh
+docker-compose -p evidence2 -f network.yml -f restapi.yml up --build
+```
+
+
+
+## Unit Testing
+
+### Start the database container
+See [Start the database container]()
+
+### Add Test Email-Account directly in the database
+In order to carry out the unit tests, a test account is created directly in the Postgres database. 
+The test user has the email `nobody@example.com` and the password is `supersecret`.
+**Never** do this on a production server!
+
+We assume that the container of the authentication database is running at `localhost:55014`.
+
+```sh
+psql --host=127.0.0.1 --port=55014 --username=postgres -f test/addtestaccount.sql
+```
+
+### Load the Environment Variables
+See [Configure environment variables]()
+
+### Run Unit Tests
+```sh
+source .venv/bin/activate
+pytest
+```
+
+
+
+
+## Usage Examples
+
+### From the command line
+Authenticate yourself with the test account. Request an access token.
 
 ```bash
-curl -X POST "http://0.0.0.0:55017/v1/auth-legacy/login" \
+curl -X POST "http://0.0.0.0:55017/v1/auth/login" \
     -H "accept: application/json" -H "Content-Type: application/x-www-form-urlencoded" \
-    -d "username=testuser2&password=secret2" \
+    -d "username=nobody@example.com&password=supersecret" \
     > mytokendata
+cat mytokendata
 TOKEN=$(cat mytokendata | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")
 echo $TOKEN
 ```
 
-(6) Probiere andere Requests aus
+Try other Requests
 
 ```bash
 curl -X GET "http://127.0.0.1:55017/v1/bestworst/random/4" \
     -H "accept: application/json" \
     -H "Authorization: Bearer ${TOKEN}"
-```
 
-```bash
 curl -X POST "http://localhost:55017/v1/user/settings" \
     -H  "accept: application/json" -H  "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" -d '{"hello":"world3"}'
@@ -98,51 +145,13 @@ curl -X GET "http://localhost:55017/v1/user/settings" \
     -H "Authorization: Bearer ${TOKEN}"
 ```
 
-## Authentifizierung mit Email und Email-Verifikation
 
-#### Workflow
-- In der UI trägt der Benutzer seine Email und gewünschtes Passwort ein und sendet es an die API
-- API: Email/PW wird an DB weitergeleitet
-- DB legt ein inaktives Benutzerkonto an, und gibt Verfikationstoken and API zurück.
-- API sendet Email mit Verfikationslink an die angegebene Email
-- Benutzer klickt auf Verfikationslink
-- API liest Verfikationstoken aus und sendet diesen zur DB
-- DB prüft Verfikationstoken und stellt Benutzerkonto auf aktiv.
-
-#### Lege neues Benutzerkonto an (register)
-Bitte ersetze `you@example.com` durch eine gültige Email.
-
-```sh
-curl -X POST "http://0.0.0.0:55017/v1/auth/register" \
-    -H "accept: application/json" -H "Content-Type: application/x-www-form-urlencoded" \
-    -d "username=you@example.com&password=secret2"
-```
-
-#### Bestätigungslink verarbeiten (verify)
-Bitte benutze den Link in deinem E-Mail Postfach.
-
-```sh
-curl -X GET "http://0.0.0.0:55017/v1/auth/verify/273950a0-a11a-461b-83b3-12ddd1b1d9b5"
-```
-
-#### Einloggen (login)
-Bitte ersetze `you@example.com` durch eine gültige Email.
-
-```bash
-curl -X POST "http://0.0.0.0:55017/v1/auth/login" \
-    -H "accept: application/json" -H "Content-Type: application/x-www-form-urlencoded" \
-    -d "username=you@example.com&password=secret2" > mytokendata
-TOKEN=$(cat mytokendata | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")
-echo $TOKEN
-```
-
-
-## Authentifizierung in Python
+### In Python
 
 ```python
 import requests
-data = {"username": "testuser1", "password": "secret"}
-resp = requests.post("http://localhost:55017/v1/auth-legacy/login", data)
+data = {"username": "nobody@example.com", "password": "supersecret"}
+resp = requests.post("http://localhost:55017/v1/auth/login", data)
 print(resp.text)
 
 TOKEN = resp.json()['access_token']
@@ -154,93 +163,78 @@ print(resp.json())
 
 
 
-## Benutzerkonten manuell erstellen (Zwischenlösung)
-Starte die virtuelle python Umgebung und starte die Console
 
-```bash
-source .venv/bin/activate
-python3
-```
+## Authentication Process
+The authentication mechanism is implemented in
 
-Hashe das Password
+- the [databases](https://github.com/satzbeleg/evidence-database) repository: `dbauth/` and `dbauth.yml`
+- the REST API repository: `app/routers/auth_email.py` and `restapi.yml`
 
-```python
-password = "supergeheim"
+It is very important to setup the SMTP credentials to send verfication emails in `specific.env.sh`
 
-from passlib.context import CryptContext
-pwd_context = CryptContext(schemes=["sha512_crypt"], deprecated="auto") 
-hashed = pwd_context.hash(password)
-print(hashed)
-```
+### The Authentification Workflow
+- In the UI, the user enters his email and desired password and sends it to the API
+- API: Email / PW is forwarded to DB
+- DB creates an inactive user account and returns verification token and API.
+- API sends email with verification link to the specified email
+- User clicks verification link
+- API reads verification tokens and sends them to the DB
+- DB checks verification token and sets user account to active.
 
-Öffne die PSQL Console (siehe []())
-
-```bash
-psql --host=127.0.0.1 --port=55015 --username=postgres
-```
-
-Füge neuen User ein
-
-```sql
-SELECT auth.add_new_user_with_localpw('benutzer789', '$6$rounds=656000$PSAR1THK2sFnMpoJ$iFk/ia.wcLWeWBOmcCG7TRjG0HUpnUuWZzcxRpiRhgdphmXQscUtjmvFf9xuBxMdG25Wef1CSacKZdetY7CBj1');
-```
-
-
-
-## Run REST API in a docker container
-The file `docker-compose.yml` contains an **configuration example** how to deploy the REST API as docker container. It is recommended to add this repository as git submodule to an deployment repository with a central Docker Compose configuration that suits your needs. 
+### Create a new user account (register)
+Bitte ersetze `you@example.com` durch eine gültige Email.
 
 ```sh
-# load environment variables
-set -a
-source defaults.env.sh
-
-# start containers
-# - WARNING: Don't use the `docker compose` because it cannot process `ipv4_address`!
-docker-compose -p evidence2 -f network.yml -f restapi.yml up --build
+EMAIL=you@example.com
+PASSWORD=secret2
+curl -X POST "http://0.0.0.0:55017/v1/auth/register" \
+    -H "accept: application/json" -H "Content-Type: application/x-www-form-urlencoded" \
+    -d "username=${EMAIL}&password=${PASSWORD}"
 ```
 
-(Start docker daemon before, e.g. `open /Applications/Docker.app` on MacOS).
+### Process verfication link (verify)
+Please use the link in your email inbox.
 
-Check
-
+```sh
+VERIFYTOKEN=273950a0-a11a-461b-83b3-12ddd1b1d9b5
+curl -X GET "http://0.0.0.0:55017/v1/auth/verify/${VERIFYTOKEN}"
 ```
-curl http://localhost:55017/v1/
+
+#### Log in (login)
+
+```bash
+curl -X POST "http://0.0.0.0:55017/v1/auth/login" \
+    -H "accept: application/json" -H "Content-Type: application/x-www-form-urlencoded" \
+    -d "username=${EMAIL}&password=${PASSWORD}" > mytokendata
+TOKEN=$(cat mytokendata | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")
+echo $TOKEN
 ```
 
-Notes: Only `main.py` is used in `Dockerfile`.
 
 
-## Misc Commands
-- Check pip8 syntax: `flake8 --ignore=F401 --exclude=$(grep -v '^#' .gitignore | xargs | sed -e 's/ /,/g')`
-- Run unit tests: `pytest`
+## Appendix
+
+### Documentation
 - Show the docs `http://localhost:55017/docs`
 - Show Redoc: `http://localhost:55017/redoc`
 
 
+### Commands
+- Check pip8 syntax: `flake8 --ignore=F401 --exclude=$(grep -v '^#' .gitignore | xargs | sed -e 's/ /,/g')`
+- Run unit tests: `pytest`
 
 Clean Up code
 
 ```bash
-# delete  `.pyc` files: 
 find . -type f -name "*.pyc" | xargs rm
-
-# delete `__pycache__` folders 
 find . -type d -name "__pycache__" | xargs rm -r
-
-# delete `.pytest_cache` folder
 rm -r .pytest_cache
-
-# delete virtual env
 rm -r .venv
 ```
 
-
-# Appendix
-
-## Support
+### Support
 Please [open an issue](https://github.com/satzbeleg/evidence-restapi/issues/new) for support.
 
-## Contributing
+### Contributing
 Please contribute using [Github Flow](https://guides.github.com/introduction/flow/). Create a branch, add commits, and [open a pull request](https://github.com/satzbeleg/evidence-restapi/compare/).
 
