@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .config import config_web_app
 
 from .routers import (
-    auth_legacy, auth_email, user_settings,
+    auth_email, user_settings,
     bestworst_random, bestworst_samples, bestworst_evaluations,
     interactivity_deleted_episodes, interactivity_training_examples
 )
@@ -49,13 +49,6 @@ app.add_middleware(
 def read_root():
     return {"msg": "Welcome to the EVIDENCE project."}
 
-
-app.include_router(
-    auth_legacy.router,
-    prefix=f"/{version}/auth-legacy",
-    # dependencies=[Depends(get_token_header)],
-    # responses={404: {"description": "Not found"}},
-)
 
 app.include_router(
     auth_email.router,
