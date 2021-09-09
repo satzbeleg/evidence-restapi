@@ -170,9 +170,27 @@ class PsqlDb(object):
             return user_id
 
 
-# Requires: SECRET_KEY, ALGORITHM
 def create_access_token(data: dict,
                         expires_delta: Optional[timedelta] = None):
+    """ Create a serialized JSON Web Token (JWT) as Access Token
+
+    Parameters:
+    -----------
+    data : dict
+        Payload as JSON
+    
+    expires_delta : timedelta (Default: None)
+    
+    Global Variables:
+    -----------------
+        config_auth_token['SECRET_KEY']
+        config_auth_token['ALGORITHM']
+    
+    Return:
+    -------
+    encoded_jwt : str
+        serialized JSON Web Token (JWT) as Access Token
+    """
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
