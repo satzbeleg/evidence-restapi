@@ -43,18 +43,31 @@ async def get_bestworst_random_exampleset(n_sentences: int,
         ]} for _ in range(n_examplesets)]
 
 
-# POST /bestworst/random/{n_sents}/{m_sets}
-# return M sets of N random sentences
 @router.post("/{n_sentences}/{n_examplesets}")
 async def get_bestworst_random_exampleset2(n_sentences: int,
                                            n_examplesets: int,
                                            params: dict):
+    """ Create M sets of N random sentences
+    
+    Parameters:
+    -----------
+    n_sentences : int
+        The number of sentence example for each example set
+    
+    n_examplesets : int
+        The number of example sets
+
+    params : dict
+        Payload as json. `params['lemmata'] : List[str]` is processed if sent
+
+    Usage:
+    ------
+        POST /bestworst/random/{n_sents}/{m_sets}
+    """
     if params:
         keywords = params['lemmata']
     else:
         keywords = []
-        # keywords = lorem.sentence().split(" ")[0:random.randint(1,2)]
-    print(keywords)
 
     return [{
         "set_id": str(uuid.uuid4()),
