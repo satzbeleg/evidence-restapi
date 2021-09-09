@@ -21,8 +21,6 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # install packages
 RUN pip3 install --no-cache-dir --upgrade pip
-COPY requirements-server.txt requirements-server.txt
-RUN pip3 install --no-cache-dir -r requirements-server.txt
 COPY requirements.txt requirements.txt
 RUN pip3 install --no-cache-dir -r requirements.txt
 
@@ -47,5 +45,5 @@ EXPOSE 80
 # Copy /app/main.py
 COPY ./app /app
 
-# Start server (enable if container startup is NOT configured in docker-compose.yml)
+# Start server (enable if container startup is NOT configured in restapi.yml)
 #CMD ["gunicorn", "app.main:app", "--bind", "0.0.0.0:80", "--worker-class", "uvicorn.workers.UvicornH11Worker", "--workers", "2", "--worker-tmp-dir", "/dev/shm"]

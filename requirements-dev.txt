@@ -1,3 +1,4 @@
-flake8>=3.8.3
-pytest>=6.1.0
-requests>=2.24.0
+# syntax check, unit test, profiling
+setuptools>=56.*
+flake8>=3.8.4
+pytest>=6.2.1

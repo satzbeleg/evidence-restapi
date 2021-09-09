@@ -5,7 +5,7 @@ from .auth_email import get_current_user
 import psycopg2
 from ..config import config_ev_psql
 import gc
-import json
+# import json
 
 router = APIRouter()
 

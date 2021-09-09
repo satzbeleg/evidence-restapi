@@ -7,7 +7,7 @@ import psycopg2
 from ..config import config_ev_psql
 import gc
 
-import random
+# import random
 import uuid
 import bwsample as bws
 
@@ -87,14 +87,35 @@ def extract_spans(ann: dict, keywords: List[str]) -> List[Tuple[int, int]]:
     return out
 
 
-# POST /bestworst/random/{n_sents}/{m_sets} and params
 @router.post("/{n_sentences}/{n_examplesets}/{n_top}/{n_offset}")
 async def get_bestworst_example_sets(n_sentences: int,
                                      n_examplesets: int,
                                      n_top: int,
                                      n_offset: int,
                                      params: dict):
-    """
+    """ Query sentence examples with the top N scores (or with offset)
+      and sample BWS sets from it.
+
+    Parameters:
+    -----------
+    n_sentences : int
+        The number of sentence examples for each example set
+
+    n_examplesets : int
+        The number of example sets
+
+    n_top : int
+        Query for sentence examples with the top 1 to N scores
+
+    n_offset : int
+        Query for the 1+offset to N+offset scores
+
+    params : dict
+        Payload as json. `params['lemmata'] : List[str]` is expected
+
+    Usage:
+    ------
+        POST /bestworst/random/{n_sents}/{m_sets} and params
 
     Examples:
     ---------

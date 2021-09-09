@@ -1,4 +1,6 @@
-from fastapi import APIRouter, HTTPException, Depends, status
+import fastapi
+from fastapi import Depends
+# from fastapi import APIRouter, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
 from pydantic import BaseModel
@@ -20,7 +22,7 @@ from ..config import cfg_mailer
 
 
 # Settings
-router = APIRouter()
+router = fastapi.APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 psycopg2.extras.register_uuid()  # to process UUIDs
 
@@ -36,10 +38,6 @@ class UserMeta(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
-
-
-# class TokenData(BaseModel):
-#    user_id: Optional[str] = None
 
 
 class GapiUserMeta(BaseModel):
@@ -170,9 +168,28 @@ class PsqlDb(object):
             return user_id
 
 
-# Requires: SECRET_KEY, ALGORITHM
 def create_access_token(data: dict,
                         expires_delta: Optional[timedelta] = None):
+    """ Create a serialized JSON Web Token (JWT) as Access Token
+
+    Parameters:
+    -----------
+    data : dict
+        Payload as JSON
+
+    expires_delta : timedelta (Default: None)
+        Time till expiry, e.g. `expires_delta=timedelta(minutes=15)`
+
+    Global Variables:
+    -----------------
+        config_auth_token['SECRET_KEY']
+        config_auth_token['ALGORITHM']
+
+    Return:
+    -------
+    encoded_jwt : str
+        serialized JSON Web Token (JWT) as Access Token
+    """
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -190,13 +207,29 @@ def create_access_token(data: dict,
     return encoded_jwt
 
 
-# Requires: SECRET_KEY, ALGORITHM
-async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserMeta:
+async def get_current_user(token: str = Depends(oauth2_scheme)) -> str:
     """Get meta information about a user
+
+    Parameters:
+    -----------
+    token : str
+        The decoded access token
+
+    Global Variables:
+    -----------------
+        status
+        oauth2_scheme
+        config_auth_token['SECRET_KEY']
+        config_auth_token['ALGORITHM']
+
+    Return:
+    -------
+    user_id : str
+        The user_id as string (not uuid.UUID)
     """
     # specify a general exception
-    credentials_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
+    credentials_exception = fastapi.HTTPException(
+        status_code=fastapi.status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"})
 
@@ -209,7 +242,6 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserMeta:
         user_id: str = payload.get("sub")
         if user_id is None:
             raise credentials_exception
-        # token_data = TokenData(user_id=user_id)
     except JWTError:
         raise credentials_exception
 
@@ -219,12 +251,30 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserMeta:
         return user_id
 
     # otherwise
-    raise HTTPException(status_code=400, detail="Inactive user")
+    raise fastapi.HTTPException(status_code=400, detail="Inactive user")
 
 
-# Requires: TOKEN_EXPIRY, authenticate_user
 @router.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
+    """ Process login data
+
+    Parameters:
+    -----------
+    form_data : OAuth2PasswordRequestForm
+        Contains email address (form_data.username) and
+          password (form_data.password)
+
+    Global Variables:
+    -----------------
+        config_auth_token['TOKEN_EXPIRY']
+
+    Examples:
+    ---------
+    curl -X POST "http://0.0.0.0:55017/v1/auth/login" \
+        -H "accept: application/json" \
+        -H "Content-Type: application/x-www-form-urlencoded" \
+        -d "username=${EMAIL}&password=${PASSWORD}" > mytokendata
+    """
     # validate email/password in PSQL DB
     db = PsqlDb(config_auth_psql)
     # validate email/password
@@ -232,8 +282,8 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
 
     # throw an exception
     if user_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
@@ -302,8 +352,8 @@ async def google_signin(params: GapiUserMeta) -> dict:
 
     # throw an exception
     if user_id is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_401_UNAUTHORIZED,
             detail="Cannot process Google OAuth Email and ID.",
             headers={"WWW-Authenticate": "Bearer"},
         )

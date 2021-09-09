@@ -1,13 +1,12 @@
-"""
 from starlette.testclient import TestClient
 from app.main import app, version
-import requests
+# import requests
 
 
 # get an global access token
 client = TestClient(app)
-resp = client.post(f"/{version}/auth-legacy/login",
-                   {"username": "testuser0", "password": "secret"})
+testusercreds = {"username": "nobody@example.com", "password": "supersecret"}
+resp = client.post(f"/{version}/auth/login", testusercreds)
 TOKEN = resp.json()['access_token']
 headers = {'Authorization': f"Bearer {TOKEN}"}
 del resp
@@ -15,8 +14,7 @@ del resp
 
 def test1():
     client = TestClient(app)
-    data = {"username": "testuser1", "password": "secret"}
-    response = client.post(f"/{version}/auth-legacy/login", data)
+    response = client.post(f"/{version}/auth/login", testusercreds)
     assert 'access_token' in response.json()
     assert response.json()['token_type'] == 'bearer'
 
@@ -34,4 +32,13 @@ def test3():
     assert response.status_code == 200
     assert len(response.json()[0]["examples"]) == 4
     assert len(response.json()) == 10
-"""
+
+
+def test4():
+    client = TestClient(app)
+    response = client.post(
+        f"/{version}/bestworst/samples/4/3/20/0",
+        headers=headers, json={"lemmata": ["Impeachment"]})
+    assert response.status_code == 200
+    assert len(response.json()[0]["examples"]) == 4
+    assert len(response.json()) == 3
