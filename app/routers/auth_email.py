@@ -254,9 +254,27 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> str:
     raise fastapi.HTTPException(status_code=400, detail="Inactive user")
 
 
-# Requires: TOKEN_EXPIRY, authenticate_user
 @router.post("/login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
+    """ Process login data
+
+    Parameters:
+    -----------
+    form_data : OAuth2PasswordRequestForm
+        Contains email address (form_data.username) and 
+          password (form_data.password)
+    
+    Global Variables:
+    -----------------
+        config_auth_token['TOKEN_EXPIRY']
+    
+    Examples:
+    ---------
+    curl -X POST "http://0.0.0.0:55017/v1/auth/login" \
+        -H "accept: application/json" \
+        -H "Content-Type: application/x-www-form-urlencoded" \
+        -d "username=${EMAIL}&password=${PASSWORD}" > mytokendata
+    """
     # validate email/password in PSQL DB
     db = PsqlDb(config_auth_psql)
     # validate email/password
