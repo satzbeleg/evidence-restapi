@@ -16,10 +16,19 @@ import random
 router = APIRouter()
 
 
-# GET /bestworst/random/{n_sents}
-# Return one set of N random sentences
 @router.get("/{n_sentences}")
 async def get_bestworst_random_sentence(n_sentences: int):
+    """ Create one set of N random sentences (GET)
+
+    Parameters:
+    -----------
+    n_sentences : int
+        The number of sentence examples
+
+    Usage:
+    ------
+        GET /bestworst/random/{n_sents}
+    """
     return [
         {
             "id": str(uuid.uuid4()),
@@ -37,7 +46,7 @@ async def get_bestworst_random_exampleset(n_sentences: int,
     Parameters:
     -----------
     n_sentences : int
-        The number of sentence example for each example set
+        The number of sentence examples for each example set
 
     n_examplesets : int
         The number of example sets
@@ -64,7 +73,7 @@ async def get_bestworst_random_exampleset2(n_sentences: int,
     Parameters:
     -----------
     n_sentences : int
-        The number of sentence example for each example set
+        The number of sentence examples for each example set
 
     n_examplesets : int
         The number of example sets
