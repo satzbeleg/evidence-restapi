@@ -143,6 +143,12 @@ curl -X POST "http://localhost:55017/v1/user/settings" \
 curl -X GET "http://localhost:55017/v1/user/settings" \
     -H  "accept: application/json" -H  "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}"
+
+curl -X POST "http://localhost:55017/v1/bestworst/samples/4/3/100/0" \
+            -H  "accept: application/json" \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${TOKEN}" \
+            -d '{"lemmata": ["impeachment"]}'
 ```
 
 
