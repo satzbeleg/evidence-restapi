@@ -94,7 +94,7 @@ async def get_bestworst_example_sets(n_sentences: int,
                                      n_offset: int,
                                      params: dict):
     """ Query sentence examples with the top N scores (or with offset)
-      and sample BWS sets from it.  
+      and sample BWS sets from it.
 
     Parameters:
     -----------
@@ -103,7 +103,7 @@ async def get_bestworst_example_sets(n_sentences: int,
 
     n_examplesets : int
         The number of example sets
-    
+
     n_top : int
         Query for sentence examples with the top 1 to N scores
 
