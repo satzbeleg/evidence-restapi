@@ -10,9 +10,8 @@ import random
 #               Return one set of N random sentences
 #   GET     /bestworst/random/{n_sents}/{m_sets}
 #               Return M sets of N random sentences
-#   POST    n.a.
-#   PUT     n.a.
-#   DELETE  n.a.
+#   POST    /bestworst/random/{n_sents}/{m_sets}
+#               Return M sets of N random sentences
 router = APIRouter()
 
 
