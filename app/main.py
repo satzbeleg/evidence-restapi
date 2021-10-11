@@ -55,7 +55,7 @@ app.include_router(
     prefix=f"/{version}/auth",
     tags=["auth"],
     # dependencies=[Depends(get_token_header)],
-    # responses={404: {"description": "Not found"}},
+    responses={404: {"description": "Not found"}},
 )
 
 # POST /user/settings
@@ -64,7 +64,7 @@ app.include_router(
     prefix=f"/{version}/user/settings",
     tags=["user"],
     dependencies=[Depends(auth_email.get_current_user)],
-    # responses={404: {"description": "Not found"}},
+    responses={404: {"description": "Not found"}},
 )
 
 
@@ -75,7 +75,7 @@ app.include_router(
     prefix=f"/{version}/bestworst/random",
     tags=["bestworst"],
     dependencies=[Depends(auth_email.get_current_user)],
-    # responses={404: {"description": "Not found"}},
+    responses={404: {"description": "Not found"}},
 )
 
 # POST /bestworst/random/{n_sents}/{m_sets} and params
@@ -84,7 +84,7 @@ app.include_router(
     prefix=f"/{version}/bestworst/samples",
     tags=["bestworst"],
     dependencies=[Depends(auth_email.get_current_user)],
-    # responses={404: {"description": "Not found"}},
+    responses={404: {"description": "Not found"}},
 )
 
 
@@ -94,7 +94,7 @@ app.include_router(
     prefix=f"/{version}/bestworst/evaluations",
     tags=["bestworst"],
     dependencies=[Depends(auth_email.get_current_user)],
-    # responses={404: {"description": "Not found"}},
+    responses={404: {"description": "Not found"}},
 )
 
 
@@ -104,7 +104,7 @@ app.include_router(
     prefix=f"/{version}/interactivity/deleted-episodes",
     tags=["interactivity"],
     dependencies=[Depends(auth_email.get_current_user)],
-    # responses={404: {"description": "Not found"}},
+    responses={404: {"description": "Not found"}},
 )
 
 # POST /interactivity/examples
@@ -113,5 +113,5 @@ app.include_router(
     prefix=f"/{version}/interactivity/training-examples",
     tags=["interactivity"],
     dependencies=[Depends(auth_email.get_current_user)],
-    # responses={404: {"description": "Not found"}},
+    responses={404: {"description": "Not found"}},
 )
