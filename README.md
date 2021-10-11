@@ -91,7 +91,7 @@ docker-compose -p evidence2 -f network.yml -f restapi.yml up --build
 ## Unit Testing
 
 ### Start the database container
-See [Start the database container]()
+See [Start the database container](#configure-environment-variables)
 
 ### Add Test Email-Account directly in the database
 In order to carry out the unit tests, a test account is created directly in the Postgres database. 
