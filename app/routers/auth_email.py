@@ -66,6 +66,7 @@ class PsqlDb(object):
             del cur, conn
             user_id = str(uuid.UUID(str(user_id)))  # trigger Error or not
         except Exception as e:
+            logging.error(f"UserId: {user_id} / Type: {type(user_id)}")
             logging.error(e)
             user_id = None
         finally:

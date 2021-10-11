@@ -77,11 +77,11 @@ def extract_spans(ann: dict, keywords: List[str]) -> List[Tuple[int, int]]:
         out.extend([e.get('span', None) for e in ann.get('spans', [])
                     if e.get('lemma', '') in keywords and e.get('span', None)])
         # add from TOKEN given lemma
-        out.extend([e.get('span', None) for e in ann.get('token', [])
+        out.extend([e.get('span', None) for e in ann.get('tokens', [])
                     if e.get('lemma', '') in keywords and e.get('span', None)])
         # add from COMPOUND given lemma
         out.extend(list(itertools.chain(
-            *[e.get('spans', []) for e in ann.get('compound', [])
+            *[e.get('spans', []) for e in ann.get('compounds', [])
               if e.get('lemma', '') in keywords and e.get('spans', None)])))
     # done
     return out

@@ -52,7 +52,9 @@ In particular, the SMTP settings must be adapted.
 ```bash
 set -a
 source defaults.env.sh
-# source specific.env.sh
+# source secret.env.sh
+
+export CORS_WEBAPP_HOSTPORT=55018
 
 export DBAPPL_HOST=localhost
 export DBAPPL_PORT=55015
@@ -72,7 +74,7 @@ Follow instructions in [databases](https://github.com/satzbeleg/evidence-databas
 
 ```bash
 source .venv/bin/activate
-uvicorn app.main:app --host 0.0.0.0 --port 55017 --reload --log-level debug
+uvicorn app.main:app --host localhost --port 55017 --reload --log-level debug
 ```
 
 Open [http://localhost:55017/v1/docs](http://localhost:55017/v1/docs) in your browser.
@@ -89,7 +91,7 @@ docker-compose -p evidence2 -f network.yml -f restapi.yml up --build
 ## Unit Testing
 
 ### Start the database container
-See [Start the database container]()
+See [Start the database container](#configure-environment-variables)
 
 ### Add Test Email-Account directly in the database
 In order to carry out the unit tests, a test account is created directly in the Postgres database. 
@@ -145,10 +147,16 @@ curl -X GET "http://localhost:55017/v1/user/settings" \
     -H "Authorization: Bearer ${TOKEN}"
 
 curl -X POST "http://localhost:55017/v1/bestworst/samples/4/3/100/0" \
-            -H  "accept: application/json" \
-            -H "Content-Type: application/json" \
-            -H "Authorization: Bearer ${TOKEN}" \
-            -d '{"lemmata": ["impeachment"]}'
+    -H  "accept: application/json" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${TOKEN}" \
+    -d '{"lemmata": ["impeachment"]}'
+
+curl -X POST "http://localhost:55017/v1/user/settings" \
+    -H "accept: application/json" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${TOKEN}" \
+    -d '{"test": 123}'
 ```
 
 
@@ -194,7 +202,8 @@ Bitte ersetze `you@example.com` durch eine gültige Email.
 EMAIL=you@example.com
 PASSWORD=secret2
 curl -X POST "http://0.0.0.0:55017/v1/auth/register" \
-    -H "accept: application/json" -H "Content-Type: application/x-www-form-urlencoded" \
+    -H "accept: application/json" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
     -d "username=${EMAIL}&password=${PASSWORD}"
 ```
 
@@ -210,7 +219,8 @@ curl -X GET "http://0.0.0.0:55017/v1/auth/verify/${VERIFYTOKEN}"
 
 ```bash
 curl -X POST "http://0.0.0.0:55017/v1/auth/login" \
-    -H "accept: application/json" -H "Content-Type: application/x-www-form-urlencoded" \
+    -H "accept: application/json" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
     -d "username=${EMAIL}&password=${PASSWORD}" > mytokendata
 TOKEN=$(cat mytokendata | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")
 echo $TOKEN
