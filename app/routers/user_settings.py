@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends
-# from typing import List, Dict, Any
+from typing import Dict, Any
 # from pydantic import BaseModel
 from .auth_email import get_current_user
 
@@ -7,6 +7,7 @@ import psycopg2
 import json
 from ..config import config_ev_psql
 import gc
+import logging
 
 
 # Settings
@@ -14,8 +15,8 @@ router = APIRouter()
 
 
 @router.post("")
-async def upsert_user_settings(settings: dict,
-                               username: str = Depends(get_current_user)
+async def upsert_user_settings(settings: Dict[Any, Any] = None,
+                               user_id: str = Depends(get_current_user)
                                ) -> dict:
     """ Store user settings from App into the database
 
@@ -24,7 +25,7 @@ async def upsert_user_settings(settings: dict,
     settings : dict
         The JSON with all the user settings received from the app.
 
-    username : str (uuid.UUID4)
+    user_id : str (uuid.UUID4)
         User ID
 
     Return:
@@ -38,16 +39,16 @@ async def upsert_user_settings(settings: dict,
         cur = conn.cursor()
         # run queries
         cur.execute(
-            "SELECT evidence.upsert_user_settings(%s::text, %s::jsonb);",
-            [username, json.dumps(settings)])
+                "SELECT evidence.upsert_user_settings(%s::uuid, %s::jsonb);",
+                [user_id, json.dumps(settings)])
         flag = cur.fetchone()[0]
         conn.commit()
-        # clean up
+            # clean up
         cur.close()
         conn.close()
         del cur, conn
     except Exception as err:
-        print(err)
+        logging.error(err)
         flag = False
     finally:
         gc.collect()
@@ -55,12 +56,12 @@ async def upsert_user_settings(settings: dict,
 
 
 @router.get("")
-async def get_user_settings(username: str = Depends(get_current_user)) -> dict:
+async def get_user_settings(user_id: str = Depends(get_current_user)) -> dict:
     """ Load user settings from the database
 
     Parameters:
     -----------
-    username : str (uuid.UUID4)
+    user_id : str (uuid.UUID4)
         User ID
 
     Return:
@@ -75,7 +76,7 @@ async def get_user_settings(username: str = Depends(get_current_user)) -> dict:
         # run queries
         cur.execute('''
             SELECT settings FROM evidence.user_settings
-            WHERE username=%s;''', [username])
+            WHERE user_id=%s::uuid;''', [user_id])
         data = cur.fetchone()[0]
         conn.commit()
         # clean up
@@ -83,8 +84,9 @@ async def get_user_settings(username: str = Depends(get_current_user)) -> dict:
         conn.close()
         del cur, conn
     except Exception as err:
-        print(err)
+        logging.error(err)
         data = {}
     finally:
         gc.collect()
+        # print("Debug:", user_id, data)
         return data
