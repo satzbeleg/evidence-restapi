@@ -39,11 +39,11 @@ async def upsert_user_settings(settings: Dict[Any, Any] = None,
         cur = conn.cursor()
         # run queries
         cur.execute(
-                "SELECT evidence.upsert_user_settings(%s::uuid, %s::jsonb);",
-                [user_id, json.dumps(settings)])
+            "SELECT evidence.upsert_user_settings(%s::uuid, %s::jsonb);",
+            [user_id, json.dumps(settings)])
         flag = cur.fetchone()[0]
         conn.commit()
-            # clean up
+        # clean up
         cur.close()
         conn.close()
         del cur, conn
