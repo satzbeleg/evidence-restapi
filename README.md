@@ -52,7 +52,7 @@ In particular, the SMTP settings must be adapted.
 ```bash
 set -a
 source defaults.env.sh
-# source secret.env.sh
+# source specific.env.sh
 
 export CORS_WEBAPP_HOSTPORT=55018
 
@@ -150,7 +150,7 @@ curl -X POST "http://localhost:55017/v1/bestworst/samples/4/3/100/0" \
     -H  "accept: application/json" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" \
-    -d '{"lemmata": ["impeachment"]}'
+    -d '{"lemmata": ["Fahrrad"]}'
 
 curl -X POST "http://localhost:55017/v1/user/settings" \
     -H "accept: application/json" \
