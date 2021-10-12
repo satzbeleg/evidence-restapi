@@ -42,9 +42,9 @@ def get_sentence_text(sent_ids: List[str]) -> dict:
     """
     warnings.warn((
         "The `evidence.sentences_cache` table is used temporarily. "
-        "The plan is use the ZDLStore API lateron!"), FutureWarning)
+        "The plan is use the ZDLStore API later on!"), FutureWarning)
 
-    # this will be replaced by an REST API call to the ZDLStore lateron
+    # this will be replaced by an REST API call to the ZDLStore later on
     try:
         # connect to DB
         conn = psycopg2.connect(**config_ev_psql)
@@ -168,7 +168,7 @@ async def get_bestworst_example_sets(n_sentences: int,
         print(err)
         return {"status": "failed", "msg": err}
 
-    # combine both sources into a list of jsons
+    # combine both sources into a list of json
     items2 = []
     for row in items:
         # possible error message
