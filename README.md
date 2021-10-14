@@ -19,12 +19,12 @@ Please follow the instruction of the [deployment repository](https://github.com/
 
 
 ## Local Development
-1. [Install Ubuntu / Debian packages]()
-2. [Install FastAPI in a separate virtual environment]()
-3. [Configure environment variables]()
-4. [Start the database container]()
-5. [Start the FastAPI Server]()
-
+1. [Install Ubuntu / Debian packages](#install-ubuntu--debian-packages)
+2. [Install FastAPI in a separate virtual environment](#install-fastapi-in-a-separate-virtual-environment)
+3. [Configure environment variables](#configure-environment-variables)
+4. [Start the database container](#start-the-database-container)
+5. [Start the FastAPI Server](#start-the-fastapi-server)
+6. [Check if the docker configuration of the REST API works](#check-if-the-docker-configuration-of-the-rest-api-works)
 
 ### Install Ubuntu / Debian packages
 
@@ -52,7 +52,7 @@ In particular, the SMTP settings must be adapted.
 ```bash
 set -a
 source defaults.env.sh
-# source secret.env.sh
+# source specific.env.sh
 
 export CORS_WEBAPP_HOSTPORT=55018
 
@@ -150,7 +150,7 @@ curl -X POST "http://localhost:55017/v1/bestworst/samples/4/3/100/0" \
     -H  "accept: application/json" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" \
-    -d '{"lemmata": ["impeachment"]}'
+    -d '{"lemmata": ["Fahrrad"]}'
 
 curl -X POST "http://localhost:55017/v1/user/settings" \
     -H "accept: application/json" \
