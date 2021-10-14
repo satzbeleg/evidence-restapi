@@ -3,7 +3,7 @@ version: '3.7'
 services:
   evidence-restapi:
     container_name: evidence-restapi
-    build:   # build using Dockfile in this directory
+    build:   # build using Dockerfile in this directory
       context: ${RESTAPI_PATH:-.}/
       dockerfile: Dockerfile
     command: sh -c "gunicorn app.main:app 
@@ -26,7 +26,7 @@ services:
       CORS_WEBAPP_HOSTPORT: ${WEBAPP_HOSTPORT:-8080}
       CORS_WEBAPP_DOMAIN: ${PUBLIC_DOMAIN:-localhost}
 
-      # Authentification Database
+      # Authentication Database
       # - see database/dbauth.yml 
       DBAUTH_HOST: 172.20.253.7
       DBAUTH_PORT: 5432
@@ -38,7 +38,7 @@ services:
       ACCESS_TOKEN_EXPIRY: ${ACCESS_TOKEN_EXPIRY:-1440}
       ACCESS_ALGORITHM: ${ACCESS_ALGORITHM:-HS256}
 
-      # Mailer settings for Verfication Mails
+      # Mailer settings for Verification Mails
       SMTP_SERVER: ${SMTP_SERVER:-}  # e.g. "smtp.example.com"
       SMTP_PORT: ${SMTP_PORT:-25}    # 587 (TLS) or 25 (unsecure); 465 (SSL) is not available
       SMTP_TLS: ${SMTP_TLS:-0}       # i.e. "1" or "0"

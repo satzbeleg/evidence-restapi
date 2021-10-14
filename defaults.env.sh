@@ -20,7 +20,7 @@ export DBAPPL_PASSWORD=password1234
 export WEBAPP_HOSTPORT=55018
 #export PUBLIC_DOMAIN=localhost
 
-# Authentification Database
+# Authentication Database
 # - see database/dbauth.yml 
 echo "WARNING: Make sure that the dbauth.yml Container is running!"
 export DBAUTH_PASSWORD=password1234
@@ -29,7 +29,7 @@ export DBAUTH_PASSWORD=password1234
 export ACCESS_SECRET_KEY=$(openssl rand -hex 32)
 export ACCESS_TOKEN_EXPIRY=1440  # in minutes
 
-# Mailer settings for Verfication Mails
+# Mailer settings for Verification Mails
 echo "WARNING: Please specify a real SMTP Mail Account!"
 export SMTP_SERVER="smtp.example.com"
 export SMTP_PORT=587
@@ -38,6 +38,6 @@ export SMTP_USER="nobody"
 export SMTP_PASSWORD="supersecret"
 export FROM_EMAIL="nobody@example.com"
 
-echo "WARNING: Specify the real base URL of the WebApp lateron"
+echo "WARNING: Specify the real base URL of the WebApp later on"
 export VERIFY_PUBLIC_URL="http://localhost:${RESTAPI_HOSTPORT}"
 #export VERIFY_PUBLIC_URL="https://${PUBLIC_DOMAIN}:${WEBAPP_HOSTPORT}"
