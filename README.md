@@ -20,7 +20,7 @@ Please follow the instruction of the [deployment repository](https://github.com/
 
 ## Local Development
 1. [Install Ubuntu / Debian packages](#install-ubuntu--debian-packages)
-2. [Install FastAPI in a seperate virtual environment](#install-fastapi-in-a-seperate-virtual-environment)
+2. [Install FastAPI in a separate virtual environment](#install-fastapi-in-a-separate-virtual-environment)
 3. [Configure environment variables](#configure-environment-variables)
 4. [Start the database container](#start-the-database-container)
 5. [Start the FastAPI Server](#start-the-fastapi-server)
@@ -35,7 +35,7 @@ sudo apt install -y --no-install-recommends libpq-dev
 ```
 
 
-### Install FastAPI in a seperate virtual environment
+### Install FastAPI in a separate virtual environment
 
 ```bash
 python3 -m venv .venv
@@ -93,7 +93,7 @@ docker-compose -p evidence2 -f network.yml -f restapi.yml up --build
 ### Start the database container
 See [Start the database container](#configure-environment-variables)
 
-### Add Test Email-Account directly in the database
+### Add test email account directly in the database
 In order to carry out the unit tests, a test account is created directly in the Postgres database. 
 The test user has the email `nobody@example.com` and the password is `supersecret`.
 **Never** do this on a production server!
@@ -184,9 +184,9 @@ The authentication mechanism is implemented in
 - the [databases](https://github.com/satzbeleg/evidence-database) repository: `dbauth/` and `dbauth.yml`
 - the REST API repository: `app/routers/auth_email.py` and `restapi.yml`
 
-It is very important to setup the SMTP credentials to send verfication emails in `specific.env.sh`
+It is very important to setup the SMTP credentials to send verification emails in `specific.env.sh`
 
-### The Authentification Workflow
+### The Authentication Workflow
 - In the UI, the user enters his email and desired password and sends it to the API
 - API: Email / PW is forwarded to DB
 - DB creates an inactive user account and returns verification token and API.
@@ -196,7 +196,7 @@ It is very important to setup the SMTP credentials to send verfication emails in
 - DB checks verification token and sets user account to active.
 
 ### Create a new user account (register)
-Bitte ersetze `you@example.com` durch eine gültige Email.
+Please replace `you@example.com` with a valid email.
 
 ```sh
 EMAIL=you@example.com
@@ -207,7 +207,7 @@ curl -X POST "http://0.0.0.0:55017/v1/auth/register" \
     -d "username=${EMAIL}&password=${PASSWORD}"
 ```
 
-### Process verfication link (verify)
+### Process verification link (verify)
 Please use the link in your email inbox.
 
 ```sh

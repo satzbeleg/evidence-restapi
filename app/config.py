@@ -16,7 +16,7 @@ config_web_app = {
     "domain": os.getenv("CORS_WEBAPP_DOMAIN", default="localhost")
 }
 
-# Authentification Database
+# Authentication Database
 # see database/dbauth.yml
 config_auth_psql = {
     "host": os.getenv("DBAUTH_HOST", default=None),  # localhost
@@ -35,7 +35,7 @@ config_auth_token = {
     "TOKEN_EXPIRY": int(os.getenv("ACCESS_TOKEN_EXPIRY", default=1440))
 }
 
-# Mailer settings for Verfication Mails
+# Mailer settings for Verification Mails
 cfg_mailer = {
     "SMTP_SERVER": os.getenv("SMTP_SERVER", default=None),
     "SMTP_PORT": os.getenv("SMTP_PORT", default=None),
