@@ -58,13 +58,11 @@ source defaults.env.sh
 
 export CORS_WEBAPP_HOSTPORT=55018
 
-export DBAPPL_HOST=localhost
-export DBAPPL_PORT=55015
 export DBAPPL_USER=postgres
+export DBAPPL_PASSWORD=password1234
 
-export DBAUTH_HOST=localhost
-export DBAUTH_PORT=55014
 export DBAUTH_USER=postgres
+export DBAUTH_PASSWORD=password1234
 ```
 
 
