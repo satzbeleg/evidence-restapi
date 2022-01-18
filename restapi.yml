@@ -1,4 +1,4 @@
-version: '3.9'
+version: '3.7'
 
 services:
   evidence-restapi:
@@ -16,7 +16,7 @@ services:
     environment:
       # Application Database
       # - see database/dbappl.yml
-      DBAPPL_HOST: 172.20.253.5
+      DBAPPL_HOST: evidence-dbappl_master  # 172.20.253.5
       DBAPPL_PORT: 5432
       DBAPPL_USER: ${DBAPPL_USER:-postgres}
       DBAPPL_PASSWORD: ${DBAPPL_PASSWORD}
@@ -28,7 +28,7 @@ services:
 
       # Authentication Database
       # - see database/dbauth.yml 
-      DBAUTH_HOST: 172.20.253.7
+      DBAUTH_HOST: evidence-dbauth  # 172.20.253.7
       DBAUTH_PORT: 5432
       DBAUTH_USER: ${DBAUTH_USER:-postgres}
       DBAUTH_PASSWORD: ${DBAUTH_PASSWORD}
@@ -47,9 +47,9 @@ services:
       FROM_EMAIL: ${FROM_EMAIL:-}   # e.g. "nobody@example.com"
       VERIFY_PUBLIC_URL: ${VERIFY_PUBLIC_URL:-}   # e.g. "https://mywebapp.com:12345"
       
-    networks:
-      evidence-network:
-        ipv4_address: 172.20.253.2
+    networks: [ evidence-network ]  # dynamic IPs!
+    # evidence-network:
+    #     ipv4_address: 172.20.253.2
     deploy:
       restart_policy:
         condition: on-failure
