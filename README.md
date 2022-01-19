@@ -107,25 +107,25 @@ echo $TOKEN
 Try other Requests
 
 ```bash
-curl -X GET "http://127.0.0.1:55017/v1/bestworst/random/4" \
+curl -X GET "http://localhost:8080/v1/bestworst/random/4" \
     -H "accept: application/json" \
     -H "Authorization: Bearer ${TOKEN}"
 
-curl -X POST "http://localhost:55017/v1/user/settings" \
+curl -X POST "http://localhost:8080/v1/user/settings" \
     -H  "accept: application/json" -H  "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" -d '{"hello":"world3"}'
 
-curl -X GET "http://localhost:55017/v1/user/settings" \
+curl -X GET "http://localhost:8080/v1/user/settings" \
     -H  "accept: application/json" -H  "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}"
 
-curl -X POST "http://localhost:55017/v1/bestworst/samples/4/3/100/0" \
+curl -X POST "http://localhost:8080/v1/bestworst/samples/4/3/100/0" \
     -H  "accept: application/json" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" \
     -d '{"lemmata": ["Fahrrad"]}'
 
-curl -X POST "http://localhost:55017/v1/user/settings" \
+curl -X POST "http://localhost:8080/v1/user/settings" \
     -H "accept: application/json" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" \
@@ -138,13 +138,13 @@ curl -X POST "http://localhost:55017/v1/user/settings" \
 ```python
 import requests
 data = {"username": "nobody@example.com", "password": "supersecret"}
-resp = requests.post("http://localhost:55017/v1/auth/login", data)
+resp = requests.post("http://localhost:8080/v1/auth/login", data)
 print(resp.text)
 
 TOKEN = resp.json()['access_token']
 headers = {'Authorization': f"Bearer {TOKEN}"}
 
-resp = requests.get("http://localhost:55017/v1/bestworst/random/5", headers=headers)
+resp = requests.get("http://localhost:8080/v1/bestworst/random/5", headers=headers)
 print(resp.json())
 ```
 
