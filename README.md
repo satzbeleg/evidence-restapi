@@ -252,5 +252,5 @@ rm -r .venv
 Please [open an issue](https://github.com/satzbeleg/evidence-restapi/issues/new) for support.
 
 ### Contributing
-Please contribute using [Github Flow](https://guides.github.com/introduction/flow/). Create a branch, add commits, and [open a pull request](https://github.com/satzbeleg/evidence-restapi/compare/).
+Please contribute using [Github Flow](https://guides.github.com/introduction/flow/). Create a branch, add commits, and [open a pull request](https://github.com/satzbeleg/evidence-restapi/compare/). You are asked to sign the CLA on your first pull request.
 
