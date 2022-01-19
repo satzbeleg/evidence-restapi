@@ -19,7 +19,7 @@ jobs:
           PERSONAL_ACCESS_TOKEN : ${{ secrets.PERSONAL_ACCESS_TOKEN }}
         with:
           path-to-signatures: '.cla/cla.json'
-          path-to-document: 'https://github.com/satzbeleg/evidence-deploy/blob/main/.cla/CLA.md' # e.g. a CLA or a DCO document
+          path-to-document: 'https://github.com/satzbeleg/evidence-restapi/blob/main/.cla/CLA.md' # e.g. a CLA or a DCO document
           # branch should not be protected
           branch: 'main'
           allowlist: bot*
