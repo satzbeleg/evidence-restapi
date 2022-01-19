@@ -20,6 +20,7 @@ import smtplib
 from email.message import EmailMessage
 from ..config import cfg_mailer
 
+logging.info(cfg_mailer)
 
 # Settings
 router = fastapi.APIRouter()
@@ -322,9 +323,10 @@ async def register(form_data: OAuth2PasswordRequestForm = Depends()) -> dict:
     # Send Verification Mail
     with smtplib.SMTP(cfg_mailer["SMTP_SERVER"],
                       cfg_mailer["SMTP_PORT"]) as server:
-        if cfg_mailer["SMTP_TLS"] is not None:
+        if cfg_mailer["SMTP_TLS"]:
             server.starttls()
-        server.login(cfg_mailer["SMTP_USER"], cfg_mailer["SMTP_PASSWORD"])
+        if cfg_mailer["SMTP_USER"] and cfg_mailer["SMTP_PASSWORD"]:
+            server.login(cfg_mailer["SMTP_USER"], cfg_mailer["SMTP_PASSWORD"])
         server.send_message(msg)
 
     return {"status": "sucess", "msg": "Verfication mail sent."}
