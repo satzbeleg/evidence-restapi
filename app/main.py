@@ -26,18 +26,10 @@ app = FastAPI(
     redoc_url=f"/{version}/redoc"
 )
 
-# allow exceptions to develop on the same machine/host (i.e. localhost)
+# allow CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=list(set([
-        "http://localhost:8080",
-        f"http://localhost:{config_web_app.get('port')}",
-        "http://127.0.0.1:8080",
-        f"http://127.0.0.1:{config_web_app.get('port')}",
-        "http://0.0.0.0:8080",
-        f"http://0.0.0.0:{config_web_app.get('port')}",
-        f"https://{config_web_app.get('domain')}:{config_web_app.get('port')}"
-    ])),
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

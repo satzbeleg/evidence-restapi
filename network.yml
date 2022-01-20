@@ -1,6 +1,0 @@
-version: '3.7'
-
-networks:
-  evidence-network:
-    name: evidence-network
-    driver: bridge
