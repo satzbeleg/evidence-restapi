@@ -22,11 +22,11 @@ Please follow the instruction of the [deployment repository](https://github.com/
 
 ## Local Development
 1. [Start local database and mail server](#start-local-database-and-mail-server)
-1. [Install Ubuntu / Debian packages](#install-ubuntu--debian-packages)
-1. [Install FastAPI in a separate virtual environment](#install-fastapi-in-a-separate-virtual-environment)
-1. [Configure environment variables](#configure-environment-variables)
-1. [Start the database container](#start-the-database-container)
-1. [Start the FastAPI Server](#start-the-fastapi-server)
+2. [Install Ubuntu / Debian packages](#install-ubuntu--debian-packages)
+3. [Install FastAPI in a separate virtual environment](#install-fastapi-in-a-separate-virtual-environment)
+4. [Configure environment variables](#configure-environment-variables)
+5. [Start the database container](#start-the-database-container)
+6. [Start the FastAPI Server](#start-the-fastapi-server)
 
 ### Start local database and mail server
 
@@ -66,7 +66,15 @@ cp dev.env .env
 
 ```bash
 source .venv/bin/activate
-uvicorn app.main:app --host localhost --port 8080 --reload --log-level debug
+
+gunicorn app.main:app \
+    --bind 0.0.0.0:8080 \
+    --worker-class uvicorn.workers.UvicornH11Worker \
+    --workers 2 --worker-tmp-dir /dev/shm
+
+#uvicorn app.main:app \
+#    --host localhost --port 8080 \
+#    --reload --log-level debug
 ```
 
 Open [http://localhost:8080/v1/docs](http://localhost:8080/v1/docs) in your browser.

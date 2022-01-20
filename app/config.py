@@ -47,7 +47,7 @@ cfg_mailer = {
     "SMTP_TLS": config("SMTP_TLS", cast=bool, default="0"),
     "SMTP_USER": config("SMTP_USER", default=None),
     "SMTP_PASSWORD": config("SMTP_PASSWORD", default=None),
-    "FROM_EMAIL": config("FROM_EMAIL", default='evidence-app@bbaw.de'),
+    "FROM_EMAIL": config("FROM_EMAIL", default=None),
     "VERIFY_PUBLIC_URL": config("VERIFY_PUBLIC_URL",
                                 default='http://localhost:8080')
 }
