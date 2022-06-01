@@ -30,7 +30,8 @@ Please follow the instruction of the [deployment repository](https://github.com/
 ### Start local database and mail server
 
 ```bash
-(cd $EVIDENCE_DEPLOY && docker-compose up dbauth mail)
+cd $EVIDENCE_DEPLOY 
+docker-compose --build  up dbauth mail
 ```
 
 ### Install Ubuntu / Debian packages
