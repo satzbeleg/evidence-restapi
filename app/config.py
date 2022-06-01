@@ -23,7 +23,7 @@ config_web_app = {
 }
 
 # Authentication Database
-# see database/dbauth.yml
+# see database/dbauth
 config_auth_psql = {
     "host": config("DBAUTH_HOST", default='localhost'),
     "port": config("DBAUTH_PORT", cast=int, default='5432'),
