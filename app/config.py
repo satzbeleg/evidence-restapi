@@ -7,13 +7,14 @@ from starlette.datastructures import CommaSeparatedStrings, Secret
 # Config will be read from environment variables and/or ".env" files.
 config = Config(".env")
 
-# Postgres Evidence Database
-config_ev_psql = {
-    "host": config("DBAPPL_HOST", default='localhost'),
-    "port": config("DBAPPL_PORT", cast=int, default='5432'),
-    "database": config("DBAPPL_DATABASE", default=None),
-    "user": config("DBAPPL_USER", default="evidence"),
-    "password": config("DBAPPL_PASSWORD", default="evidence")
+# Cassandra Evidence Database
+# see database/dbeval
+config_ev_cql = {
+    "nodes": config("DBEVAL_NODES", default='0.0.0.0'),  # comma-seperated!
+    "port": config("DBEVAL_PORT", cast=int, default="9042"),
+    "keyspace": config("DBEVAL_KEYSPACE", default="evidence"),
+    "username": config("DBEVAL_USERNAME", default="cassandra"),
+    "password": config("DBEVAL_PASSWORD", default="cassandra")
 }
 
 # Web App Settings (e.g. CORS)

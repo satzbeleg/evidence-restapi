@@ -3,14 +3,17 @@ from typing import List, Tuple
 import warnings
 import itertools
 
-import psycopg2
-from ..config import config_ev_psql
+from ..cqlconn import CqlConn
 import gc
+import cassandra as cas
 
-# import random
 import uuid
 import bwsample as bws
 
+import logging
+
+# start logger
+logger = logging.getLogger(__name__)
 
 # Summary
 #   GET     n.a.
@@ -20,71 +23,22 @@ import bwsample as bws
 router = APIRouter()
 
 
-def get_sentence_text(sent_ids: List[str]) -> dict:
-    """Download raw sentence text from ZDLStore API
-
-    Parameters:
-    -----------
-    sent_ids : List[str]
-        A list of UUID4 sentence_id that are compatible to the
-          ZDLStore API.
-
-    Return:
-    -------
-    dict
-        A JSON object with sentence_id as key, and sentence_text as value.
-
-    Examples:
-    ---------
-        dbsentences = get_sentence_text([
-            '37e76b95-1106-4818-8486-2985807db988',
-            '8dde3a62-9f50-432d-8d4e-886e0f9c032f'])
-    """
-    warnings.warn((
-        "The `evidence.sentences_cache` table is used temporarily. "
-        "The plan is use the ZDLStore API later on!"), FutureWarning)
-
-    # this will be replaced by an REST API call to the ZDLStore later on
-    try:
-        # connect to DB
-        conn = psycopg2.connect(**config_ev_psql)
-        cur = conn.cursor()
-        # query
-        cur.execute('''
-            SELECT sentence_id, sentence_text, annotation
-            FROM zdlstore.sentences_cache
-            WHERE sentence_id::text LIKE ANY(%s::text[]);
-            ''', [sent_ids])
-        dbsentences = {key: {"text": txt, "annotation": ann}
-                       for key, txt, ann in cur.fetchall()}
-        conn.commit()
-        # clean up
-        cur.close()
-        conn.close()
-        del cur, conn
-    except Exception as err:
-        print(err)
-        return {}
-    finally:
-        gc.collect()
-        return dbsentences
-
-
-def extract_spans(ann: dict, keywords: List[str]) -> List[Tuple[int, int]]:
-    out = []
-    if keywords:
-        # add from SPAN given lemma
-        out.extend([e.get('span', None) for e in ann.get('spans', [])
-                    if e.get('lemma', '') in keywords and e.get('span', None)])
-        # add from TOKEN given lemma
-        out.extend([e.get('span', None) for e in ann.get('tokens', [])
-                    if e.get('lemma', '') in keywords and e.get('span', None)])
-        # add from COMPOUND given lemma
-        out.extend(list(itertools.chain(
-            *[e.get('spans', []) for e in ann.get('compounds', [])
-              if e.get('lemma', '') in keywords and e.get('spans', None)])))
-    # done
-    return out
+# DELETE
+# def extract_spans(ann: dict, keywords: List[str]) -> List[Tuple[int, int]]:
+#     out = []
+#     if keywords:
+#         # add from SPAN given lemma
+#         out.extend([e.get('span', None) for e in ann.get('spans', [])
+#                     if e.get('lemma', '') in keywords and e.get('span', None)])
+#         # add from TOKEN given lemma
+#         out.extend([e.get('span', None) for e in ann.get('tokens', [])
+#                     if e.get('lemma', '') in keywords and e.get('span', None)])
+#         # add from COMPOUND given lemma
+#         out.extend(list(itertools.chain(
+#             *[e.get('spans', []) for e in ann.get('compounds', [])
+#               if e.get('lemma', '') in keywords and e.get('spans', None)])))
+#     # done
+#     return out
 
 
 @router.post("/{n_sentences}/{n_examplesets}/{n_top}/{n_offset}")
@@ -111,7 +65,7 @@ async def get_bestworst_example_sets(n_sentences: int,
         Query for the 1+offset to N+offset scores
 
     params : dict
-        Payload as json. `params['lemmata'] : List[str]` is expected
+        Payload as json. `params['headword'] : str` is expected
 
     Usage:
     ------
@@ -124,35 +78,48 @@ async def get_bestworst_example_sets(n_sentences: int,
             -H  "accept: application/json" \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${TOKEN}" \
-            -d '{"lemmata": ["impeachment"]}'
+            -d '{"headword": "Fahrrad"}'
 
     """
-    # read the lemmata key value
+    # read the headword key value
     if params:
-        keywords = params['lemmata']
+        headword = params['headword']
     else:
-        return {"status": "failed", "msg": "Please search for a lemma."}
+        return {"status": "failed", "msg": "Please search for a headword."}
 
     # query database for example items
     try:
-        # Open connection to EVIDENCE database
-        conn = psycopg2.connect(**config_ev_psql)
-        cur = conn.cursor()
-        # generate query string and run query
-        n_examples = max(n_examplesets, 1) * max(1, n_sentences - 1)
-        cur.execute((
-            "SELECT sentence_id, context, score "
-            "FROM evidence.query_by_lemmata(%s::text[], %s::int, %s::int) "
-            "ORDER BY random() LIMIT %s;"),
-            [keywords, n_top, n_offset, n_examples])
-        items = cur.fetchall()
-        conn.commit()
+        # connect to Cassandra DB
+        conn = CqlConn()
+        session = conn.get_session()
+        # prepare statement to download the whole partion
+        stmt = session.prepare(f"""
+SELECT example_id, sentence_text, headword,
+  features1, features2,
+  spans, sentence_id, license, initial_score
+FROM examples WHERE headword=? LIMIT 10000; 
+        """)
+        # fetch partition
+        dat = session.execute(stmt, [headword])
+        # read data to list of json
+        items = []
+        for row in dat:
+            items.append({
+                "id": row.example_id,
+                "text": row.sentence_text,
+                "spans": row.spans,
+                "context": {"license": row.license, "sentence_id": row.sentence_id},
+                "score": row.initial_score,
+                "features": {"semantic": row.features1, "syntax": row.features2}
+            })
         # clean up
-        cur.close()
-        conn.close()
-        del cur, conn
+        conn.shutdown()
+        del conn, session
+    except cas.ReadTimeout as err:
+        logger.error(f"Read Timeout problems with '{headword}': {err}")
+        return {"status": "failed", "msg": err}
     except Exception as err:
-        print(err)
+        logger.error(f"Unknown problems with '{headword}': {err}")
         return {"status": "failed", "msg": err}
     finally:
         gc.collect()
@@ -161,43 +128,17 @@ async def get_bestworst_example_sets(n_sentences: int,
     if len(items) < n_sentences:
         return {"status": "failed", "msg": "not enough sentences found."}
 
-    # download sentence_text
-    try:
-        dbsentences = get_sentence_text([row[0] for row in items])
-    except Exception as err:
-        print(err)
-        return {"status": "failed", "msg": err}
-
-    # combine both sources into a list of json
-    items2 = []
-    for row in items:
-        # possible error message
-        text = f"SentenceID '{row[0]}' doesn't exist in the ZDLStore API."
-        spans = []
-        if row[0] in dbsentences:
-            tmp = dbsentences.get(row[0])
-            text = tmp.get('text', f"DB entry malformed for '{row[0]}'")
-            spans = extract_spans(tmp.get('annotation', {}), keywords)
-        # append json to array
-        items2.append({
-            "id": row[0],
-            "text": text,
-            "spans": spans,
-            "context": row[1],
-            "score": row[2]
-        })
-
     # Sample overlapping example sets, each shuffled
     # - see https://github.com/satzbeleg/bwsample#sampling
     sampled_sets = bws.sample(
-        items2, n_items=n_sentences, method='overlap', shuffle=True)
+        items, n_items=n_sentences, method='overlap', shuffle=True)
 
     # Add meta information for the app
     example_sets = []
     for bwset in sampled_sets:
         example_sets.append({
             "set_id": str(uuid.uuid4()),
-            "lemmata": keywords,
+            "headword": headword,
             "examples": bwset
         })
 

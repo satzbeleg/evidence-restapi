@@ -31,7 +31,7 @@ Please follow the instruction of the [deployment repository](https://github.com/
 
 ```bash
 cd $EVIDENCE_DEPLOY 
-docker-compose --build  up dbauth mail
+docker-compose up --build dbauth dbeval dbeval-install  mail
 ```
 
 ### Install Ubuntu / Debian packages
@@ -76,6 +76,7 @@ Open [http://localhost:8080/v1/docs](http://localhost:8080/v1/docs) in your brow
 
 
 ## Check if the API is working
+
 
 ### (a) Add test email account directly in the database
 In order to carry out the unit tests, a test account is created directly in the Postgres database. 
@@ -133,7 +134,7 @@ curl -X POST "http://localhost:8080/v1/bestworst/samples/4/3/100/0" \
     -H  "accept: application/json" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" \
-    -d '{"lemmata": "Fahrrad"}'
+    -d '{"headword": "Fahrrad"}'
 ```
 
 
