@@ -56,7 +56,7 @@ async def get_bestworst_random_exampleset(n_sentences: int,
     """
     return [{
         "set_id": str(uuid.uuid4()),
-        "lemmata": lorem.sentence().split(" ")[0:random.randint(1, 2)],
+        "headword": lorem.sentence().split(" ")[0:random.randint(1, 2)],
         "examples": [
             {"id": str(uuid.uuid4()), "text": lorem.sentence()}
             for _ in range(n_sentences)
@@ -78,20 +78,20 @@ async def get_bestworst_random_exampleset2(n_sentences: int,
         The number of example sets
 
     params : dict
-        Payload as json. `params['lemmata'] : List[str]` is processed if sent
+        Payload as json. `params['headword'] : str` is processed if sent
 
     Usage:
     ------
         POST /bestworst/random/{n_sents}/{m_sets}
     """
     if params:
-        keywords = params['lemmata']
+        keywords = params['headword']
     else:
-        keywords = []
+        keywords = ""
 
     return [{
         "set_id": str(uuid.uuid4()),
-        "lemmata": keywords,
+        "headword": keywords,
         "examples": [
             {"id": str(uuid.uuid4()), "text": lorem.sentence()}
             for _ in range(n_sentences)
