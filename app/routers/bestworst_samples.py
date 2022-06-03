@@ -128,6 +128,11 @@ FROM examples WHERE headword=? LIMIT 10000;
     if len(items) < n_sentences:
         return {"status": "failed", "msg": "not enough sentences found."}
 
+    # sort by largest score n_top, n_offset
+    if len(items) > n_top:
+        items = sorted(items, key=lambda x: x["score"], reverse=True)
+        items = items[(n_offset):(n_offset + n_top)]
+
     # Sample overlapping example sets, each shuffled
     # - see https://github.com/satzbeleg/bwsample#sampling
     sampled_sets = bws.sample(
