@@ -23,6 +23,11 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+# connect to Cassandra DB
+conn = CqlConn()
+session = conn.get_session()
+
+
 # DELETE
 # def extract_spans(ann: dict, keywords: List[str]) -> List[Tuple[int, int]]:
 #     out = []
@@ -89,9 +94,6 @@ async def get_bestworst_example_sets(n_sentences: int,
 
     # query database for example items
     try:
-        # connect to Cassandra DB
-        conn = CqlConn()
-        session = conn.get_session()
         # prepare statement to download the whole partion
         stmt = session.prepare(f"""
 SELECT example_id, sentence_text, headword,
@@ -112,9 +114,6 @@ FROM examples WHERE headword=? LIMIT 10000;
                 "score": row.initial_score,
                 "features": {"semantic": row.features1, "syntax": row.features2}
             })
-        # clean up
-        conn.shutdown()
-        del conn, session
     except cas.ReadTimeout as err:
         logger.error(f"Read Timeout problems with '{headword}': {err}")
         return {"status": "failed", "msg": err}
