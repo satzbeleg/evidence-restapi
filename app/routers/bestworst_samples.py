@@ -28,24 +28,6 @@ conn = CqlConn()
 session = conn.get_session()
 
 
-# DELETE
-# def extract_spans(ann: dict, keywords: List[str]) -> List[Tuple[int, int]]:
-#     out = []
-#     if keywords:
-#         # add from SPAN given lemma
-#         out.extend([e.get('span', None) for e in ann.get('spans', [])
-#                     if e.get('lemma', '') in keywords and e.get('span', None)])
-#         # add from TOKEN given lemma
-#         out.extend([e.get('span', None) for e in ann.get('tokens', [])
-#                     if e.get('lemma', '') in keywords and e.get('span', None)])
-#         # add from COMPOUND given lemma
-#         out.extend(list(itertools.chain(
-#             *[e.get('spans', []) for e in ann.get('compounds', [])
-#               if e.get('lemma', '') in keywords and e.get('spans', None)])))
-#     # done
-#     return out
-
-
 @router.post("/{n_sentences}/{n_examplesets}/{n_top}/{n_offset}")
 async def get_bestworst_example_sets(n_sentences: int,
                                      n_examplesets: int,
@@ -123,14 +105,14 @@ FROM examples WHERE headword=? LIMIT 10000;
     finally:
         gc.collect()
 
-    # abort if less than `n_sentences`
-    if len(items) < n_sentences:
-        return {"status": "failed", "msg": "not enough sentences found."}
-
     # sort by largest score n_top, n_offset
     if len(items) > n_top:
         items = sorted(items, key=lambda x: x["score"], reverse=True)
         items = items[(n_offset):(n_offset + n_top)]
+
+    # abort if less than `n_sentences`
+    if len(items) < n_sentences:
+        return {"status": "failed", "msg": "not enough sentences found."}
 
     # Sample overlapping example sets, each shuffled
     # - see https://github.com/satzbeleg/bwsample#sampling
