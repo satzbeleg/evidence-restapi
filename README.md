@@ -136,7 +136,7 @@ curl -X POST "http://localhost:8080/v1/bestworst/samples/4/3/100/0" \
     -H "Authorization: Bearer ${TOKEN}" \
     -d '{"headword": "Fahrrad"}'
 
-curl -X POST "http://localhost:8080/v1/interactivity/training-examples/50/0" \
+curl -X POST "http://localhost:8080/v1/interactivity/training-examples/5/10/0" \
     -H  "accept: application/json" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" \

@@ -12,6 +12,6 @@ psycopg2-binary>=2.8.6
 cassandra-driver>=3.25.0,<4
 bwsample>=0.6.7
 lorem>=0.1.1
+numpy>=1.19.2
 # disabled
-# numpy>=1.19.2
 requests>=2.24.0

@@ -3,6 +3,7 @@ from ..cqlconn import CqlConn
 import cassandra as cas
 import gc
 import logging
+import numpy as np
 
 # start logger
 logger = logging.getLogger(__name__)
@@ -15,8 +16,9 @@ conn = CqlConn()
 session = conn.get_session()
 
 
-@router.post("/{n_top}/{n_offset}")
-async def get_examples_with_features(n_top: int,
+@router.post("/{n_examples}/{n_top}/{n_offset}")
+async def get_examples_with_features(n_examples: int,
+                                     n_top: int,
                                      n_offset: int,
                                      params: dict) -> list:
     # read the headword key value
@@ -70,4 +72,7 @@ FROM examples WHERE headword=? LIMIT 10000;
     if len(items) == 0:
         return {"status": "failed", "msg": "no sentences found."}
 
-    return items
+    # randomly sample items
+    return np.random.choice(
+        items, min(len(items), n_examples),
+        replace=False).tolist()
