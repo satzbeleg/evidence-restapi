@@ -9,6 +9,8 @@ from ..config import config_auth_psql
 import gc
 import logging
 
+# start logger
+logger = logging.getLogger(__name__)
 
 # Settings
 router = APIRouter()
