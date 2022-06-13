@@ -124,13 +124,19 @@ curl -X GET "http://localhost:8080/v1/user/settings" \
     -H "Authorization: Bearer ${TOKEN}"
 ```
 
-### (e) Sample BWS sets
+### (e) Sample BWS sets or training examples
 ```bash
 curl -X GET "http://localhost:8080/v1/bestworst/random/4" \
     -H "accept: application/json" \
     -H "Authorization: Bearer ${TOKEN}"
 
 curl -X POST "http://localhost:8080/v1/bestworst/samples/4/3/100/0" \
+    -H  "accept: application/json" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${TOKEN}" \
+    -d '{"headword": "Fahrrad"}'
+
+curl -X POST "http://localhost:8080/v1/interactivity/training-examples/50/0" \
     -H  "accept: application/json" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" \

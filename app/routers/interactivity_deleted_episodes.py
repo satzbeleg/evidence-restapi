@@ -2,12 +2,19 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, Any
 from .auth_email import get_current_user
 
-import psycopg2
-from ..config import config_ev_psql
+from ..cqlconn import CqlConn
 import gc
-# import json
+import logging
 
+# start logger
+logger = logging.getLogger(__name__)
+
+# POST /interactivity/deleted-episodes with params
 router = APIRouter()
+
+# connect to Cassandra DB
+conn = CqlConn()
+session = conn.get_session()
 
 
 @router.post("")
@@ -15,9 +22,8 @@ async def save_deleted_episodes(data: Dict[str, Any],
                                 user_id: str = Depends(get_current_user)
                                 ) -> dict:
     try:
-        # connect to DB
-        conn = psycopg2.connect(**config_ev_psql)
-        cur = conn.cursor()
+        # connect to Cassandra DB
+        session = CqlConn()
 
         # generate query string and run query
         queryvalues = b",".join(cur.mogrify(
@@ -38,13 +44,13 @@ async def save_deleted_episodes(data: Dict[str, Any],
             "ON CONFLICT DO NOTHING "
             "RETURNING sentence_id;"))
 
-        stored_sentids = cur.fetchall()
+        # excute statments
+        for headword in headwords:
+            session.execute_async(batch_stmts[headword])
+
+        # confirm setIDs for deletion within the app
+        stored_setids = [exset['set-id'] for exset in data]
         flag = True
-        conn.commit()
-        # clean up
-        cur.close()
-        conn.close()
-        del cur, conn
     except Exception as err:
         print(err)
         flag = False

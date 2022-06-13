@@ -1,15 +1,9 @@
 from fastapi import APIRouter, HTTPException
-from typing import List, Tuple
-import warnings
-import itertools
-
 from ..cqlconn import CqlConn
-import gc
 import cassandra as cas
-
+import gc
 import uuid
 import bwsample as bws
-
 import logging
 
 # start logger
@@ -77,11 +71,11 @@ async def get_bestworst_example_sets(n_sentences: int,
     # query database for example items
     try:
         # prepare statement to download the whole partion
-        stmt = session.prepare(f"""
+        stmt = session.prepare("""
 SELECT example_id, sentence_text, headword,
   features1, features2,
   spans, sentence_id, license, initial_score
-FROM examples WHERE headword=? LIMIT 10000; 
+FROM examples WHERE headword=? LIMIT 10000;
         """)
         # fetch partition
         dat = session.execute(stmt, [headword])
@@ -92,9 +86,13 @@ FROM examples WHERE headword=? LIMIT 10000;
                 "id": row.example_id,
                 "text": row.sentence_text,
                 "spans": row.spans,
-                "context": {"license": row.license, "sentence_id": row.sentence_id},
+                "context": {
+                    "license": row.license,
+                    "sentence_id": row.sentence_id},
                 "score": row.initial_score,
-                "features": {"semantic": row.features1, "syntax": row.features2}
+                "features": {
+                    "semantic": row.features1,
+                    "syntax": row.features2}
             })
     except cas.ReadTimeout as err:
         logger.error(f"Read Timeout problems with '{headword}': {err}")

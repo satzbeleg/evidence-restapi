@@ -29,11 +29,11 @@ async def get_examples_with_features(n_top: int,
     # query database for example items
     try:
         # prepare statement to download the whole partion
-        stmt = session.prepare(f"""
+        stmt = session.prepare("""
 SELECT example_id, sentence_text, headword,
   features1, features2,
   spans, sentence_id, license, initial_score
-FROM examples WHERE headword=? LIMIT 10000; 
+FROM examples WHERE headword=? LIMIT 10000;
         """)
         # fetch partition
         dat = session.execute(stmt, [headword])
@@ -44,9 +44,13 @@ FROM examples WHERE headword=? LIMIT 10000;
                 "id": row.example_id,
                 "text": row.sentence_text,
                 "spans": row.spans,
-                "context": {"license": row.license, "sentence_id": row.sentence_id},
+                "context": {
+                    "license": row.license,
+                    "sentence_id": row.sentence_id},
                 "score": row.initial_score,
-                "features": {"semantic": row.features1, "syntax": row.features2}
+                "features": {
+                    "semantic": row.features1,
+                    "syntax": row.features2}
             })
     except cas.ReadTimeout as err:
         logger.error(f"Read Timeout problems with '{headword}': {err}")

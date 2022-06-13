@@ -29,8 +29,10 @@ class CqlConn:
         self.session.default_timeout = None
         # set `USE keyspace;`
         self.session.set_keyspace(config_ev_cql["keyspace"])
+
     def get_session(self) -> cas.cluster.Session:
         return self.session
+
     def shutdown(self) -> None:
         self.session.shutdown()
         self.cluster.shutdown()
