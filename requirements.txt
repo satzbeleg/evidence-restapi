@@ -13,6 +13,6 @@ cassandra-driver>=3.25.0,<4
 bwsample>=0.6.7
 lorem>=0.1.1
 numpy>=1.19.2,<2
-numba>=0.56.2,<1
+numba>=0.53.1,<1
 # disabled
 requests>=2.24.0
