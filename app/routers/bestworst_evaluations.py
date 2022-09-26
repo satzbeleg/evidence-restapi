@@ -64,10 +64,10 @@ async def save_evaluated_examplesets(data: List[Any],
     try:
         # prepare insert statement
         stmt = session.prepare("""
-INSERT INTO evidence.evaluated_bestworst
-(set_id, user_id, ui_name,
- headword, event_history, state_sentid_map, tracking_data)
-VALUES (?, ?, ?, ?, ?, ?, ?) IF NOT EXISTS;
+        INSERT INTO evidence.evaluated_bestworst
+        (set_id, user_id, ui_name,
+        headword, event_history, state_sentid_map, tracking_data)
+        VALUES (?, ?, ?, ?, ?, ?, ?) IF NOT EXISTS;
         """)
 
         # init batch statements

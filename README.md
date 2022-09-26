@@ -84,8 +84,8 @@ The test user has the email `nobody@example.com` and the password is `supersecre
 **Never** do this on a production server!
 
 ```sh
-cd $EVIDENCE_DEPLOY 
-cat restapi/test/addtestaccount.sql | docker exec -i evidence_dbauth psql -U evidence -d evidence
+export EVIDENCE_DEPLOY=../
+(cd $EVIDENCE_DEPLOY && cat restapi/test/addtestaccount.sql | docker exec -i evidence_dbauth psql -U evidence -d evidence)
 ```
 
 ### (b) Run Unit Tests
@@ -159,6 +159,16 @@ resp = requests.get("http://localhost:8080/v1/bestworst/random/5", headers=heade
 print(resp.json())
 ```
 
+
+### (g) Similarity matrices
+
+```sh
+curl -X POST "http://localhost:8080/v1/variation/similarity-matrices" \
+    -H  "accept: application/json" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${TOKEN}" \
+    -d '{"headword": "Internet", "limit": 50}'
+```
 
 
 

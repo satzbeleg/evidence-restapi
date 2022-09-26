@@ -4,9 +4,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from .config import config_web_app
 
 from .routers import (
-    auth_email, user_settings,
-    bestworst_random, bestworst_samples, bestworst_evaluations,
-    interactivity_deleted_episodes, interactivity_training_examples
+    auth_email,
+    user_settings,
+    bestworst_random,
+    bestworst_samples,
+    bestworst_evaluations,
+    interactivity_deleted_episodes,
+    interactivity_training_examples,
+    similarity_matrices
 )
 
 
@@ -104,6 +109,15 @@ app.include_router(
     interactivity_training_examples.router,
     prefix=f"/{version}/interactivity/training-examples",
     tags=["interactivity"],
+    dependencies=[Depends(auth_email.get_current_user)],
+    responses={404: {"description": "Not found"}},
+)
+
+# POST /similarity
+app.include_router(
+    similarity_matrices.router,
+    prefix=f"/{version}/variation/similarity-matrices",
+    tags=["variation"],
     dependencies=[Depends(auth_email.get_current_user)],
     responses={404: {"description": "Not found"}},
 )
