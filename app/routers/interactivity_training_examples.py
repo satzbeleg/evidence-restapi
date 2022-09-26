@@ -32,10 +32,10 @@ async def get_examples_with_features(n_examples: int,
     try:
         # prepare statement to download the whole partion
         stmt = session.prepare("""
-SELECT example_id, sentence_text, headword,
-  features1, features2,
-  spans, sentence_id, license, initial_score
-FROM examples WHERE headword=? LIMIT 10000;
+        SELECT example_id, sentence_text, headword,
+               features1, features2,
+        spans, sentence_id, license, initial_score
+        FROM examples WHERE headword=? LIMIT 10000;
         """)
         # fetch partition
         dat = session.execute(stmt, [headword])
@@ -43,8 +43,9 @@ FROM examples WHERE headword=? LIMIT 10000;
         items = []
         for row in dat:
             items.append({
-                "id": row.example_id,
+                "example_id": row.example_id,
                 "text": row.sentence_text,
+                "headword": row.headword,
                 "spans": row.spans,
                 "context": {
                     "license": row.license,
