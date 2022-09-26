@@ -2,8 +2,10 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import List, Any
 from .auth_email import get_current_user
 
-import psycopg2
-from ..config import config_ev_psql
+from ..cqlconn import CqlConn
+import cassandra as cas
+import cassandra.query
+import uuid
 import gc
 import json
 
@@ -15,6 +17,11 @@ import json
 #   PUT     n.a.
 #   DELETE  n.a.
 router = APIRouter()
+
+
+# connect to Cassandra DB
+conn = CqlConn()
+session = conn.get_session()
 
 
 @router.post("")
@@ -43,7 +50,7 @@ async def save_evaluated_examplesets(data: List[Any],
             -H "Authorization: Bearer ${TOKEN}" \
             -d '[{"set-id": "147a6a02-2714-430a-a906-bdccc0c72b36",
                   "ui-name": "bestworst456",
-                  "lemmata": ["Stichwort1", "Keyword2"],
+                  "headword": "Stichwort",
                   "event-history": [{"events": "many"}, {"and": "again"}],
                   "state-sentid-map": {"idx0": "stateA", "idx1": "stateB"} }]'
 
@@ -52,50 +59,46 @@ async def save_evaluated_examplesets(data: List[Any],
     - We are not doing any post-processing within the API or database. It's
         expected that the WebApp sends the data as it should be stored in
         the database.
-    - Use a bulk insert statement by creating one big SQL query string for
-        1 commit instead of using psycopg2's `cur.executemany` what would
-        loop through N commits (see https://stackoverflow.com/a/10147451)
     - How to JSON: https://www.psycopg.org/docs/extras.html#json-adaptation
     """
     try:
-        # connect to DB
-        conn = psycopg2.connect(**config_ev_psql)
-        cur = conn.cursor()
+        # prepare insert statement
+        stmt = session.prepare("""
+        INSERT INTO evidence.evaluated_bestworst
+        (set_id, user_id, ui_name,
+        headword, event_history, state_sentid_map, tracking_data)
+        VALUES (?, ?, ?, ?, ?, ?, ?) IF NOT EXISTS;
+        """)
 
-        # generate query string and run query
-        queryvalues = b",".join(cur.mogrify(
-            (
-                "(%s::uuid, %s::text, %s::uuid, %s::text[],"
-                "%s::jsonb, %s::jsonb, %s::jsonb)"
-            ), [
-                user_id,
+        # init batch statements
+        headwords = set([exset['headword'] for exset in data])
+        batch_stmts = {}
+        for headword in headwords:
+            batch_stmts[headword] = cas.query.BatchStatement(
+                consistency_level=cas.query.ConsistencyLevel.ANY)
+
+        # read data and add to batch statement
+        for exset in data:
+            batch_stmts[exset['headword']].add(stmt, [
+                uuid.UUID(exset['set-id']),
+                uuid.UUID(user_id),
                 exset['ui-name'],
-                exset['set-id'],
-                exset['lemmata'],
+                exset['headword'],
                 json.dumps(exset['event-history']),
                 json.dumps(exset['state-sentid-map']),
                 json.dumps(exset['tracking-data'])
-            ]) for exset in data).decode("utf-8")
-        # print(queryvalues)
+            ])
+        # excute statments
+        for headword in headwords:
+            session.execute_async(batch_stmts[headword])
 
-        cur.execute((
-            "INSERT INTO evidence.evaluated_bestworst(user_id, ui_name, "
-            "set_id, lemmata, event_history, state_sentid_map, tracking_data "
-            f") VALUES {queryvalues} "
-            "ON CONFLICT DO NOTHING "
-            "RETURNING set_id;"))
-
-        stored_setids = cur.fetchall()
+        # confirm setIDs for deletion within the app
+        stored_setids = [exset['set-id'] for exset in data]
         flag = True
-        conn.commit()
-        # clean up
-        cur.close()
-        conn.close()
-        del cur, conn
     except Exception as err:
         print(err)
-        flag = False
         stored_setids = []
+        flag = False
     finally:
         gc.collect()
         return {

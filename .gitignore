@@ -108,3 +108,4 @@ venv.bak/
 .tmp 
 
 mytokendata
+.DS_Store

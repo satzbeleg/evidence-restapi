@@ -1,14 +1,19 @@
 from fastapi import APIRouter, HTTPException, Depends
-# from typing import List, Any
-# from .auth_email import get_current_user
-from .bestworst_samples import get_sentence_text, extract_spans
-
-import psycopg2
-from ..config import config_ev_psql
+from ..cqlconn import CqlConn
+import cassandra as cas
 import gc
-import json
+import logging
+import numpy as np
 
+# start logger
+logger = logging.getLogger(__name__)
+
+# POST /interactivity/training-examples/{n_top}/{n_offset}
 router = APIRouter()
+
+# connect to Cassandra DB
+conn = CqlConn()
+session = conn.get_session()
 
 
 @router.post("/{n_examples}/{n_top}/{n_offset}")
@@ -16,84 +21,59 @@ async def get_examples_with_features(n_examples: int,
                                      n_top: int,
                                      n_offset: int,
                                      params: dict) -> list:
-    # read the lemmata key value
+    # read the headword key value
     if params:
-        keywords = params['lemmata']
-        model_info = params.get('model_info', None)
+        headword = params['headword']
         # exclude_deleted_ids = params.get('exclude_deleted_ids', False)
     else:
-        return {"status": "failed", "msg": "Please search for a lemma."}
+        return {"status": "failed", "msg": "Please search for the headword."}
 
     # query database for example items
     try:
-        # Open connection to EVIDENCE database
-        conn = psycopg2.connect(**config_ev_psql)
-        cur = conn.cursor()
-
-        # Search for a specific model
-        if model_info:
-            querymodel = cur.mogrify(
-                " WHERE model_info=%s::jsonb ",
-                [json.dumps(model_info)]).decode("utf-8")
-        else:
-            querymodel = " ORDER BY tb.sentence_id, tb2.created_at DESC "
-
-        # run query
-        cur.execute("""
-SELECT distinct on (tb.sentence_id) tb.sentence_id
-     , tb.context
-     , tb.score
-     , tb2.feature_vectors
-     , tb2.model_info
-FROM (
-    SELECT sentence_id, context, score
-    FROM evidence.query_by_lemmata(%s::text[], %s::int, %s::int)
-    ORDER BY random()
-    ) tb
-INNER JOIN zdlstore.feature_vectors tb2
-        ON tb.sentence_id = tb2.sentence_id
-""" + querymodel + " LIMIT %s ;", [keywords, n_top, n_offset, n_examples])
-        items = cur.fetchall()
-        conn.commit()
-        # clean up
-        cur.close()
-        conn.close()
-        del cur, conn
+        # prepare statement to download the whole partion
+        stmt = session.prepare("""
+        SELECT example_id, sentence_text, headword,
+               features1, features2,
+        spans, sentence_id, license, initial_score
+        FROM examples WHERE headword=? LIMIT 10000;
+        """)
+        # fetch partition
+        dat = session.execute(stmt, [headword])
+        # read data to list of json
+        items = []
+        for row in dat:
+            items.append({
+                "example_id": row.example_id,
+                "text": row.sentence_text,
+                "headword": row.headword,
+                "spans": row.spans,
+                "context": {
+                    "license": row.license,
+                    "sentence_id": row.sentence_id},
+                "score": row.initial_score,
+                "features": {
+                    "semantic": row.features1,
+                    "syntax": row.features2}
+            })
+    except cas.ReadTimeout as err:
+        logger.error(f"Read Timeout problems with '{headword}': {err}")
+        return {"status": "failed", "msg": err}
     except Exception as err:
-        print(err)
+        logger.error(f"Unknown problems with '{headword}': {err}")
         return {"status": "failed", "msg": err}
     finally:
         gc.collect()
+
+    # sort by largest score n_top, n_offset
+    if len(items) > n_top:
+        items = sorted(items, key=lambda x: x["score"], reverse=True)
+        items = items[(n_offset):(n_offset + n_top)]
 
     # abort if no query results
     if len(items) == 0:
         return {"status": "failed", "msg": "no sentences found."}
 
-    # download sentence_text
-    try:
-        dbsentences = get_sentence_text([row[0] for row in items])
-    except Exception as err:
-        print(err)
-        return {"status": "failed", "msg": err}
-
-    # combine both sources into a list of jsons
-    items2 = []
-    for row in items:
-        # possible error message
-        text = f"SentenceID '{row[0]}' doesn't exist in the ZDLStore API."
-        spans = []
-        if row[0] in dbsentences:
-            tmp = dbsentences.get(row[0])
-            text = tmp.get('text', f"DB entry malformed for '{row[0]}'")
-            spans = extract_spans(tmp.get('annotation', {}), keywords)
-        # append json to array
-        items2.append({
-            "id": row[0],
-            "text": text,
-            "spans": spans,
-            "context": row[1],
-            "score": row[2],
-            "features": row[3]
-        })
-
-    return items2
+    # randomly sample items
+    return np.random.choice(
+        items, min(len(items), n_examples),
+        replace=False).tolist()

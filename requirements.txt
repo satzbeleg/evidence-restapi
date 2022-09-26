@@ -9,8 +9,10 @@ python-jose[cryptography]>=3.2.0
 bcrypt>=3.2.0
 passlib[bcrypt]>=1.7.4
 psycopg2-binary>=2.8.6
+cassandra-driver>=3.25.0,<4
 bwsample>=0.6.7
 lorem>=0.1.1
+numpy>=1.19.2,<2
+numba>=0.53.1,<1
 # disabled
-# numpy>=1.19.2
 requests>=2.24.0

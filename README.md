@@ -7,8 +7,7 @@ Table of contents
 - [Purpose](#purpose)
 - [Installation](#installation)
 - [Local Development](#local-development)
-- [Unit Testing](#unit-testing)
-- [Usage Examples](#usage-examples)
+- [Check if the API is working](#check-if-the-api-is-working)
 - [Authentication Process](#authentication-process)
 - [Appendix](#appendix)
 
@@ -31,7 +30,8 @@ Please follow the instruction of the [deployment repository](https://github.com/
 ### Start local database and mail server
 
 ```bash
-(cd $EVIDENCE_DEPLOY && docker-compose up db mail)
+cd $EVIDENCE_DEPLOY 
+docker-compose up --build dbauth dbeval dbeval-install  mail
 ```
 
 ### Install Ubuntu / Debian packages
@@ -67,39 +67,35 @@ cp dev.env .env
 ```bash
 source .venv/bin/activate
 
-gunicorn app.main:app \
-    --bind 0.0.0.0:8080 \
-    --worker-class uvicorn.workers.UvicornH11Worker \
-    --workers 2 --worker-tmp-dir /dev/shm
-
-#uvicorn app.main:app \
-#    --host localhost --port 8080 \
-#    --reload --log-level debug
+uvicorn app.main:app \
+   --host localhost --port 8080 \
+   --reload --log-level debug
 ```
 
 Open [http://localhost:8080/v1/docs](http://localhost:8080/v1/docs) in your browser.
 
 
-## Unit Testing
+## Check if the API is working
 
-### Add test email account directly in the database
+
+### (a) Add test email account directly in the database
 In order to carry out the unit tests, a test account is created directly in the Postgres database. 
 The test user has the email `nobody@example.com` and the password is `supersecret`.
 **Never** do this on a production server!
 
 ```sh
-(cd $EVIDENCE_DEPLOY && docker-compose exec -T db psql -U evidence -n <restapi/test/addtestaccount.sql)
+export EVIDENCE_DEPLOY=../
+(cd $EVIDENCE_DEPLOY && cat restapi/test/addtestaccount.sql | docker exec -i evidence_dbauth psql -U evidence -d evidence)
 ```
 
-### Run Unit Tests
+### (b) Run Unit Tests
 ```sh
+cd restapi
 source .venv/bin/activate
 pytest
 ```
 
-## Usage Examples
-
-### From the command line
+### (c) Login and get access token
 Authenticate yourself with the test account. Request an access token.
 
 ```bash
@@ -112,36 +108,43 @@ TOKEN=$(cat mytokendata | python3 -c "import sys, json; print(json.load(sys.stdi
 echo $TOKEN
 ```
 
-Try other Requests
+### (d) Save and load user settings
 
 ```bash
-curl -X GET "http://localhost:8080/v1/bestworst/random/4" \
-    -H "accept: application/json" \
-    -H "Authorization: Bearer ${TOKEN}"
-
 curl -X POST "http://localhost:8080/v1/user/settings" \
     -H  "accept: application/json" -H  "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" -d '{"hello":"world3"}'
 
+curl -X POST "http://localhost:8080/v1/user/settings" \
+    -H "accept: application/json" -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${TOKEN}" -d '{"test": 123}'
+
 curl -X GET "http://localhost:8080/v1/user/settings" \
     -H  "accept: application/json" -H  "Content-Type: application/json" \
+    -H "Authorization: Bearer ${TOKEN}"
+```
+
+### (e) Sample BWS sets or training examples
+```bash
+curl -X GET "http://localhost:8080/v1/bestworst/random/4" \
+    -H "accept: application/json" \
     -H "Authorization: Bearer ${TOKEN}"
 
 curl -X POST "http://localhost:8080/v1/bestworst/samples/4/3/100/0" \
     -H  "accept: application/json" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" \
-    -d '{"lemmata": ["Fahrrad"]}'
+    -d '{"headword": "Fahrrad"}'
 
-curl -X POST "http://localhost:8080/v1/user/settings" \
-    -H "accept: application/json" \
+curl -X POST "http://localhost:8080/v1/interactivity/training-examples/5/10/0" \
+    -H  "accept: application/json" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" \
-    -d '{"test": 123}'
+    -d '{"headword": "Fahrrad"}'
 ```
 
 
-### In Python
+### (f) In Python
 
 ```python
 import requests
@@ -156,6 +159,16 @@ resp = requests.get("http://localhost:8080/v1/bestworst/random/5", headers=heade
 print(resp.json())
 ```
 
+
+### (g) Similarity matrices
+
+```sh
+curl -X POST "http://localhost:8080/v1/variation/similarity-matrices" \
+    -H  "accept: application/json" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${TOKEN}" \
+    -d '{"headword": "Internet", "limit": 50}'
+```
 
 
 
