@@ -2,6 +2,8 @@ from fastapi import APIRouter, HTTPException, Depends
 from typing import Dict, Any
 from .auth_email import get_current_user
 from ..cqlconn import CqlConn
+import cassandra as cas
+import cassandra.query
 import gc
 import logging
 import uuid
@@ -57,9 +59,9 @@ async def save_deleted_episodes(data: Dict[str, Any],
         stored_example_ids = [episode['example-id'] for episode in data]
         flag = True
     except Exception as err:
-        print(err)
+        logger.error(err)
         flag = False
-        stored_sentids = []
+        stored_example_ids = []
     finally:
         gc.collect()
         return {

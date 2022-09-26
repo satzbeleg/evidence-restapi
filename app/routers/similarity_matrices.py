@@ -10,6 +10,10 @@ import gc
 import json
 import numpy as np
 import numba
+import logging
+
+# start logger
+logger = logging.getLogger(__name__)
 
 # Summary
 #   GET     n.a.
@@ -114,7 +118,7 @@ async def create_similarity_matrices(data: Dict[str, Any],
         del stmt
         gc.collect()
     except Exception as err:
-        print(err)
+        logger.error(err)
         gc.collect()
         return {"status": "failed", "num": 0, "error": err,
                 "msg": "Unknown error"}
