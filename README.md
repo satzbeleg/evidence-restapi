@@ -68,11 +68,11 @@ cp dev.env .env
 source .venv/bin/activate
 
 uvicorn app.main:app \
-   --host localhost --port 8080 \
+   --host localhost --port 7070 \
    --reload --log-level debug
 ```
 
-Open [http://localhost:8080/v1/docs](http://localhost:8080/v1/docs) in your browser.
+Open [http://localhost:7070/v1/docs](http://localhost:7070/v1/docs) in your browser.
 
 
 ## Check if the API is working
@@ -99,7 +99,7 @@ pytest
 Authenticate yourself with the test account. Request an access token.
 
 ```bash
-curl -X POST "http://localhost:8080/v1/auth/login" \
+curl -X POST "http://localhost:7070/v1/auth/login" \
     -H "accept: application/json" -H "Content-Type: application/x-www-form-urlencoded" \
     -d "username=nobody@example.com&password=supersecret" \
     > mytokendata
@@ -111,32 +111,32 @@ echo $TOKEN
 ### (d) Save and load user settings
 
 ```bash
-curl -X POST "http://localhost:8080/v1/user/settings" \
+curl -X POST "http://localhost:7070/v1/user/settings" \
     -H  "accept: application/json" -H  "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" -d '{"hello":"world3"}'
 
-curl -X POST "http://localhost:8080/v1/user/settings" \
+curl -X POST "http://localhost:7070/v1/user/settings" \
     -H "accept: application/json" -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" -d '{"test": 123}'
 
-curl -X GET "http://localhost:8080/v1/user/settings" \
+curl -X GET "http://localhost:7070/v1/user/settings" \
     -H  "accept: application/json" -H  "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}"
 ```
 
 ### (e) Sample BWS sets or training examples
 ```bash
-curl -X GET "http://localhost:8080/v1/bestworst/random/4" \
+curl -X GET "http://localhost:7070/v1/bestworst/random/4" \
     -H "accept: application/json" \
     -H "Authorization: Bearer ${TOKEN}"
 
-curl -X POST "http://localhost:8080/v1/bestworst/samples/4/3/100/0" \
+curl -X POST "http://localhost:7070/v1/bestworst/samples/4/3/100/0" \
     -H  "accept: application/json" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" \
     -d '{"headword": "Fahrrad"}'
 
-curl -X POST "http://localhost:8080/v1/interactivity/training-examples/5/10/0" \
+curl -X POST "http://localhost:7070/v1/interactivity/training-examples/5/10/0" \
     -H  "accept: application/json" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" \
@@ -149,13 +149,13 @@ curl -X POST "http://localhost:8080/v1/interactivity/training-examples/5/10/0" \
 ```python
 import requests
 data = {"username": "nobody@example.com", "password": "supersecret"}
-resp = requests.post("http://localhost:8080/v1/auth/login", data)
+resp = requests.post("http://localhost:7070/v1/auth/login", data)
 print(resp.text)
 
 TOKEN = resp.json()['access_token']
 headers = {'Authorization': f"Bearer {TOKEN}"}
 
-resp = requests.get("http://localhost:8080/v1/bestworst/random/5", headers=headers)
+resp = requests.get("http://localhost:7070/v1/bestworst/random/5", headers=headers)
 print(resp.json())
 ```
 
@@ -163,7 +163,7 @@ print(resp.json())
 ### (g) Similarity matrices
 
 ```sh
-curl -X POST "http://localhost:8080/v1/variation/similarity-matrices" \
+curl -X POST "http://localhost:7070/v1/variation/similarity-matrices" \
     -H  "accept: application/json" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" \
@@ -195,7 +195,7 @@ Please replace `you@example.com` with a valid email.
 ```sh
 EMAIL=you@example.com
 PASSWORD=secret2
-curl -X POST "http://localhost:8080/v1/auth/register" \
+curl -X POST "http://localhost:7070/v1/auth/register" \
     -H "accept: application/json" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -d "username=${EMAIL}&password=${PASSWORD}"
@@ -206,13 +206,13 @@ Please use the link in your email inbox.
 
 ```sh
 VERIFYTOKEN=273950a0-a11a-461b-83b3-12ddd1b1d9b5
-curl -X GET "http://localhost:8080/v1/auth/verify/${VERIFYTOKEN}"
+curl -X GET "http://localhost:7070/v1/auth/verify/${VERIFYTOKEN}"
 ```
 
 #### Log in (login)
 
 ```bash
-curl -X POST "http://localhost:8080/v1/auth/login" \
+curl -X POST "http://localhost:7070/v1/auth/login" \
     -H "accept: application/json" \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -d "username=${EMAIL}&password=${PASSWORD}" > mytokendata
@@ -225,8 +225,8 @@ echo $TOKEN
 ## Appendix
 
 ### Documentation
-- Show the docs: http://localhost:8080/v1/docs
-- Show Redoc: http://localhost:8080/v1/redoc
+- Show the docs: http://localhost:7070/v1/docs
+- Show Redoc: http://localhost:7070/v1/redoc
 
 
 ### Commands
