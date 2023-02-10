@@ -46,11 +46,11 @@ sudo apt install -y --no-install-recommends libpq-dev
 ### Install FastAPI in a separate virtual environment
 
 ```bash
-python3 -m venv .venv
+python3.7 -m venv .venv
 source .venv/bin/activate
 pip3 install --upgrade pip
-pip3 install -r requirements.txt
 pip3 install -r requirements-dev.txt
+pip3 install -r requirements.txt
 ```
 
 

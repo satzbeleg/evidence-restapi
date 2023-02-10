@@ -1,7 +1,8 @@
 # prequired for the API itself
-fastapi>=0.61.1
-uvicorn[standard]>=0.12.1
-gunicorn>=20.1.0
+fastapi>=0.90.1,<1
+uvicorn[standard]>=0.20.0,<1
+gunicorn>=20.1.0,<21
+
 # other packages specific to the API
 python-multipart>=0.0.5
 cryptography>=3.1.1
@@ -10,9 +11,10 @@ bcrypt>=3.2.0
 passlib[bcrypt]>=1.7.4
 psycopg2-binary>=2.8.6
 cassandra-driver>=3.25.0,<4
-bwsample>=0.6.7
+bwsample>=0.7.0,<1
 lorem>=0.1.1
 numpy>=1.19.2,<2
 numba>=0.53.1,<1
+
 # disabled
 requests>=2.24.0
