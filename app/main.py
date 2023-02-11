@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends
 
 from fastapi.middleware.cors import CORSMiddleware
-from .config import config_web_app
+# from .config import config_web_app
 
 from .routers import (
     auth_email,

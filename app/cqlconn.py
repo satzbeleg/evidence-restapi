@@ -2,6 +2,7 @@ import cassandra as cas
 import cassandra.cluster
 import cassandra.query
 import cassandra.auth
+import cassandra.policies
 from .config import config_ev_cql
 import gc
 
@@ -16,8 +17,8 @@ class CqlConn:
             protocol_version=5,
             idle_heartbeat_interval=0,
             load_balancing_policy=cas.policies.RoundRobinPolicy(),
-            # reconnection_policy=cas.policies.ConstantReconnectionPolicy(
-            #     1, None),
+            reconnection_policy=cas.policies.ConstantReconnectionPolicy(
+                delay=30., max_attempts=None),
             # auth_provider=cas.auth.PlainTextAuthProvider(
             #     username=config_ev_cql["username"],
             #     password=config_ev_cql["password"])
