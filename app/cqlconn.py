@@ -104,10 +104,13 @@ def _cas_init_tables(session: cas.cluster.Session,
     session.execute(f"""
     CREATE TABLE IF NOT EXISTS {keyspace}.tbl_features (
       headword  TEXT
+    , example_id UUID
     , sentence  TEXT
+    , sent_id   UUID
     , spans    frozen<list<frozen<list<SMALLINT>>>>
     , annot    TEXT
     , biblio   TEXT
+    , license  TEXT
     , score    FLOAT
     , feats1   frozen<list<TINYINT>>
     , feats2   frozen<list<TINYINT>>

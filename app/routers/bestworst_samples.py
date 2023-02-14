@@ -5,6 +5,7 @@ import gc
 import uuid
 import bwsample as bws
 import logging
+from ..transform import i2f, i2dict
 
 # start logger
 logger = logging.getLogger(__name__)
@@ -27,7 +28,8 @@ async def get_bestworst_example_sets(n_sentences: int,
                                      n_examplesets: int,
                                      n_top: int,
                                      n_offset: int,
-                                     params: dict):
+                                     params: dict,
+                                     compressed: int = 0):
     """ Query sentence examples with the top N scores (or with offset)
       and sample BWS sets from it.
 
@@ -72,28 +74,83 @@ async def get_bestworst_example_sets(n_sentences: int,
     try:
         # prepare statement to download the whole partion
         stmt = session.prepare("""
-SELECT example_id, sentence_text, headword,
-  features1, features2,
-  spans, sentence_id, license, initial_score
-FROM examples WHERE headword=? LIMIT 10000;
+        SELECT headword
+             , example_id
+             , sentence
+             , sent_id
+             , spans
+             , annot
+             , biblio
+             , license
+             , score
+             , feats1
+             , feats2
+             , feats3
+             , feats4
+             , feats5
+             , feats6
+             , feats7
+             , feats8
+             , feats9
+             , feats12
+             , feats13
+             , feats14
+        FROM tbl_features 
+        WHERE headword=? 
+        LIMIT 10000;
         """)
         # fetch partition
         dat = session.execute(stmt, [headword])
         # read data to list of json
-        items = []
-        for row in dat:
-            items.append({
-                "id": row.example_id,
-                "text": row.sentence_text,
-                "spans": row.spans,
-                "context": {
-                    "license": row.license,
-                    "sentence_id": row.sentence_id},
-                "score": row.initial_score,
-                "features": {
-                    "semantic": row.features1,
-                    "syntax": row.features2}
-            })
+        if compressed:
+            items = []
+            for row in dat:
+                feats = i2dict(
+                    row.feats1, row.feats2, row.feats3, row.feats4,
+                    row.feats5, row.feats6, row.feats7, row.feats8,
+                    row.feats9, row.feats12, row.feats13, row.feats14)
+                items.append({
+                    "example_id": str(row.example_id),
+                    "text": row.sentence,
+                    "headword": row.headword,
+                    "spans": row.spans,
+                    "context": {
+                        "license": row.license,
+                        "sentence_id": str(row.sent_id)},
+                    "score": row.score,
+                    "features": feats
+                })
+        else:
+            items = []
+            feats = [[] for i in range(12)]
+            for row in dat:
+                feats[0].append(row.feats1)
+                feats[1].append(row.feats2)
+                feats[2].append(row.feats3)
+                feats[3].append(row.feats4)
+                feats[4].append(row.feats5)
+                feats[5].append(row.feats6)
+                feats[6].append(row.feats7)
+                feats[7].append(row.feats8)
+                feats[8].append(row.feats9)
+                feats[9].append(row.feats12)
+                feats[10].append(row.feats13)
+                feats[11].append(row.feats14)
+                items.append({
+                    "example_id": str(row.example_id),
+                    "text": row.sentence,
+                    "headword": row.headword,
+                    "spans": row.spans,
+                    "context": {
+                        "license": row.license,
+                        "sentence_id": str(row.sent_id)},
+                    "score": row.score
+                })
+            feats = i2f(*feats)
+            feats = feats.tolist()
+            for i, feat in enumerate(feats):
+                items[i]["features"] = feat
+
     except cas.ReadTimeout as err:
         logger.error(f"Read Timeout problems with '{headword}': {err}")
         return {"status": "failed", "msg": err}
@@ -104,9 +161,12 @@ FROM examples WHERE headword=? LIMIT 10000;
         gc.collect()
 
     # sort by largest score n_top, n_offset
-    if len(items) > n_top:
+    if len(items) > n_sentences:
         items = sorted(items, key=lambda x: x["score"], reverse=True)
-        items = items[(n_offset):(n_offset + n_top)]
+        if (len(items) > n_offset) and (n_offset > 0):
+            items = items[n_offset:]
+        if len(items) > n_top:
+            items = items[:n_top]
 
     # abort if less than `n_sentences`
     if len(items) < n_sentences:
@@ -127,3 +187,6 @@ FROM examples WHERE headword=? LIMIT 10000;
         })
 
     return example_sets
+
+    # Add this somewhere!
+    # int(n_examplesets * n_sentences * 1.5)
