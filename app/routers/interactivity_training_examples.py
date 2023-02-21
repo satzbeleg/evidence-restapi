@@ -76,6 +76,7 @@ async def get_examples_with_features(n_examples: int,
                     "spans": row.spans,
                     "context": {
                         "license": row.license,
+                        "biblio": row.biblio,
                         "sentence_id": str(row.sent_id)},
                     "score": row.score,
                     "features": feats
@@ -103,6 +104,7 @@ async def get_examples_with_features(n_examples: int,
                     "spans": row.spans,
                     "context": {
                         "license": row.license,
+                        "biblio": row.biblio,
                         "sentence_id": str(row.sent_id)},
                     "score": row.score
                 })
