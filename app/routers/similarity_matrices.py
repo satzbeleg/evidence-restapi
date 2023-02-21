@@ -11,6 +11,7 @@ import json
 import numpy as np
 import numba
 import logging
+from ..transform import i2f
 
 # start logger
 logger = logging.getLogger(__name__)
@@ -93,8 +94,10 @@ async def create_similarity_matrices(data: Dict[str, Any],
     try:
         # prepare statement
         stmt = cas.query.SimpleStatement(f"""
-            SELECT sentence, biblio, score,
-                feats1, hashes15, hashes16, hashes18
+            SELECT sentence, biblio, score
+                 , feats1, hashes15, hashes16, hashes18
+                 , feats2, feats3, feats4, feats5, feats6, feats7
+                 , feats8, feats9, feats12, feats13, feats14
             FROM {session.keyspace}.tbl_features
             WHERE headword='{headword}';
             """, fetch_size=5000)
@@ -106,6 +109,7 @@ async def create_similarity_matrices(data: Dict[str, Any],
         hashes_grammar = []
         hashes_duplicate = []
         hashes_biblio = []
+        feats = [[] for _ in range(12)]  # for TFJS model
         for row in session.execute(stmt):
             sentences.append(row.sentence)
             biblio.append(row.biblio)
@@ -114,6 +118,19 @@ async def create_similarity_matrices(data: Dict[str, Any],
             hashes_grammar.append(row.hashes15)
             hashes_duplicate.append(row.hashes16)
             hashes_biblio.append(row.hashes18)
+            feats[0].append(row.feats1)  # for TFJS model
+            feats[1].append(row.feats2)
+            feats[2].append(row.feats3)
+            feats[3].append(row.feats4)
+            feats[4].append(row.feats5)
+            feats[5].append(row.feats6)
+            feats[6].append(row.feats7)
+            feats[7].append(row.feats8)
+            feats[8].append(row.feats9)
+            feats[9].append(row.feats12)
+            feats[10].append(row.feats13)
+            feats[11].append(row.feats14)
+        feats = i2f(*feats)
         # delete
         del stmt
         gc.collect()
@@ -164,6 +181,7 @@ async def create_similarity_matrices(data: Dict[str, Any],
         'simi-semantic': mat_semantic.tolist(),
         'simi-grammar': mat_grammar.tolist(),
         'simi-duplicate': mat_duplicate.tolist(),
-        'simi-biblio': mat_biblio.tolist()
+        'simi-biblio': mat_biblio.tolist(),
+        'features': feats.tolist(),
     }
     return results
