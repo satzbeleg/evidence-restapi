@@ -164,6 +164,7 @@ async def create_similarity_matrices(data: Dict[str, Any],
     hashes_grammar = hashes_grammar[idx]
     hashes_duplicate = hashes_duplicate[idx]
     hashes_biblio = hashes_biblio[idx]
+    feats = feats[idx]
 
     # Compute Similarity matrices
     mat_semantic = compute_simi_matrix(feats_semantic)
