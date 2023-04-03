@@ -27,17 +27,16 @@ session = conn.get_session()
 
 
 # Store this in a user session
-# paging_states[user_id][headword] = {'paging_state': paging_state, 'timestamp': time.time()}
-# paging_state = None
-# old_headword = ""
 paging_states = {}
+
 
 def delete_old_paging_states():
     """Delete old paging states"""
     global paging_states
     for user_id in paging_states:
         for headword in paging_states[user_id]:
-            if (time.time() - paging_states[user_id][headword]['timestamp']) > 86400:
+            d = time.time() - paging_states[user_id][headword]['timestamp']
+            if d > 86400:
                 del paging_states[user_id][headword]
     gc.collect()
 
@@ -89,7 +88,8 @@ async def get_serialized_features(data: Dict[str, Any],
     if paging_states.get(user_id) is None:
         paging_states[user_id] = {}
     if paging_states[user_id].get(headword) is None:
-        paging_states[user_id][headword] = {'paging_state': None, 'timestamp': time.time()}
+        paging_states[user_id][headword] = {
+            'paging_state': None, 'timestamp': time.time()}
 
     # download data
     try:
@@ -150,7 +150,9 @@ async def get_serialized_features(data: Dict[str, Any],
                 hashes18.append(row.hashes18)
 
         # download 1 page of 'limit' sentences
-        future = session.execute_async(stmt, paging_state=paging_states[user_id][headword]['paging_state'])
+        future = session.execute_async(
+            stmt,
+            paging_state=paging_states[user_id][headword]['paging_state'])
         future.add_callback(process_results)
         results = future.result()
 

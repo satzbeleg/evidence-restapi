@@ -3,7 +3,7 @@ import numpy as np
 
 # util code to convert int8 representation to float32
 # see https://github.com/satzbeleg/evidence-features
-# 
+#
 
 
 # evf.utils.py
@@ -48,7 +48,6 @@ def int8_to_scaledfloat(idx: np.int8) -> float:
 def fasttext176_i2f(encoded):
     pdf = [[int8_to_scaledfloat(i) for i in tmp] for tmp in encoded]
     return np.vstack(pdf).astype(float)
-
 
 
 # evf.transform_all.py

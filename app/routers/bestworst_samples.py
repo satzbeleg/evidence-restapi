@@ -95,8 +95,8 @@ async def get_bestworst_example_sets(n_sentences: int,
              , feats12
              , feats13
              , feats14
-        FROM tbl_features 
-        WHERE headword=? 
+        FROM tbl_features
+        WHERE headword=?
         LIMIT 10000;
         """)
         # fetch partition

@@ -55,8 +55,8 @@ async def get_examples_with_features(n_examples: int,
              , feats12
              , feats13
              , feats14
-        FROM tbl_features 
-        WHERE headword=? 
+        FROM tbl_features
+        WHERE headword=?
         LIMIT 10000;
         """)
         # fetch partition

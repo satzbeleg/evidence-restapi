@@ -100,7 +100,6 @@ def _cas_init_tables(session: cas.cluster.Session,
     """)
 
     # Table with pre-computed features
-    # see: https://github.com/satzbeleg/evidence-features/blob/main/evidence_features/cql.py#L77
     session.execute(f"""
     CREATE TABLE IF NOT EXISTS {keyspace}.tbl_features (
       headword  TEXT
