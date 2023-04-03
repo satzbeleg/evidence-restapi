@@ -106,7 +106,7 @@ async def get_serialized_features(data: Dict[str, Any],
             FROM {session.keyspace}.tbl_features
             WHERE headword='{headword}';
             """, fetch_size=limit)
-        
+
         # read fetched rows
         sentences = []
         biblio = []
