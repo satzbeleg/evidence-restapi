@@ -52,7 +52,7 @@ def int8_to_bool(serialized: List[np.int8]) -> List[bool]:
 async def create_similarity_matrices(data: Dict[str, Any],
                                      user_id: str = Depends(get_current_user)
                                      ) -> dict:
-    """Save evaluated example sets to database
+    """Return similarity matrices for a given headword
 
     Parameters:
     -----------
