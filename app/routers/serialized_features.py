@@ -1,5 +1,5 @@
-from fastapi import APIRouter, HTTPException, Depends
-from typing import List, Dict, Any
+from fastapi import APIRouter, Depends
+from typing import Dict, Any
 from .auth_email import get_current_user
 
 from ..cqlconn import CqlConn
@@ -8,16 +8,12 @@ import cassandra.query
 import gc
 import logging
 import time
+import json
 
 # start logger
 logger = logging.getLogger(__name__)
 
-# Summary
-#   GET     n.a.
-#   POST    /bestworst/evaluations
-#               Save a list of evaluated example sets
-#   PUT     n.a.
-#   DELETE  n.a.
+# POST /variation/serialized-features
 router = APIRouter()
 
 
@@ -42,17 +38,23 @@ def delete_old_paging_states():
 
 
 @router.post("")
-async def get_serialized_features(data: Dict[str, Any],
+async def get_serialized_features(params: Dict[str, Any],
                                   user_id: str = Depends(get_current_user)
                                   ) -> dict:
     """Retrieve serialized features from database
 
     Parameters:
     -----------
-    data: List[Any]
-        A list of serialized JSON objects.
-        (We don't check it further with pydantic as the event history might
-         change depending of UI.)
+    params: List[Any]
+        Settings for data retrieval, pre- and post-processing
+
+        'headword' : str
+            The headword to retrieve features for
+        'limit' : int
+            Maximum number of sentences to retrieve from CQL on 1 page
+        'reset-pagination' : bool
+            Reset the pagination state
+        
 
     user_id: str
         The UUID4 user_id stored in the JWT token.
@@ -61,7 +63,7 @@ async def get_serialized_features(data: Dict[str, Any],
     Examples:
     ---------
     TOKEN="..."
-    curl -X POST "http://localhost:55017/v1/variation/serialized-features" \
+    curl -X POST "http://localhost:55017/v1/serialized-features" \
         -H  "accept: application/json" \
         -H "Content-Type: application/json" \
         -H "Authorization: Bearer ${TOKEN}" \
@@ -75,15 +77,15 @@ async def get_serialized_features(data: Dict[str, Any],
     - How to JSON: https://www.psycopg.org/docs/extras.html#json-adaptation
     """
     # read headword
-    headword = data.get('headword')
+    headword = params.get('headword')
     if headword is None:
         return {"status": "failed", "num": 0,
                 "msg": f"No headword='{headword}' provided"}
 
-    # max number of sentences
-    limit = data.get("limit", 500)
+    # max number of sentences to fetch per page
+    limit = params.get("limit", 500)
 
-    # reset pagination
+    # init pagination
     global paging_states
     if paging_states.get(user_id) is None:
         paging_states[user_id] = {}
@@ -91,13 +93,17 @@ async def get_serialized_features(data: Dict[str, Any],
         paging_states[user_id][headword] = {
             'paging_state': None, 'timestamp': time.time()}
 
+    # reset pagination
+    if params.get("reset-pagination", False):
+        paging_states[user_id][headword] = {
+            'paging_state': None, 'timestamp': time.time()}
+
     # download data
     try:
         # prepare statement
         stmt = cas.query.SimpleStatement(f"""
-            SELECT sentence
-                 , biblio
-                 , score
+            SELECT headword, example_id, sentence, sent_id
+                 , spans, annot, biblio, license, score
                  , feats1
                  , feats2, feats3, feats4, feats5
                  , feats6, feats7, feats8, feats9
@@ -108,8 +114,7 @@ async def get_serialized_features(data: Dict[str, Any],
             """, fetch_size=limit)
 
         # read fetched rows
-        sentences = []
-        biblio = []
+        meta = []
         scores = []
         feats1 = []
         feats2 = []
@@ -130,8 +135,17 @@ async def get_serialized_features(data: Dict[str, Any],
         # read async fetched rows
         def process_results(results):
             for row in results:
-                sentences.append(row.sentence)
-                biblio.append(row.biblio)
+                meta.append({
+                    row.headword, 
+                    str(row.example_id), 
+                    row.sentence, 
+                    str(row.sent_id), 
+                    json.dumps(row.spans), 
+                    row.annot, 
+                    row.biblio, 
+                    row.license, 
+                    row.score
+                })
                 scores.append(row.score)
                 feats1.append(row.feats1)
                 feats2.append(row.feats2)
@@ -160,7 +174,7 @@ async def get_serialized_features(data: Dict[str, Any],
         paging_states[user_id][headword] = {
             'paging_state': results.paging_state, 'timestamp': time.time()}
         delete_old_paging_states()
-        print(paging_states, results.paging_state)
+        # print(paging_states, results.paging_state)
 
         # delete
         del stmt
@@ -171,16 +185,15 @@ async def get_serialized_features(data: Dict[str, Any],
         return {"status": "failed", "num": 0, "error": err,
                 "msg": "Unknown error"}
 
-    if len(sentences) == 0:
+    if len(meta) == 0:
         return {"status": "failed", "num": 0,
                 "msg": "No sentence examples"}
 
     # done
     return {
         'status': 'success',
-        'num': len(sentences),
-        'sentences': sentences,
-        'biblio': biblio,
+        'num': len(meta),
+        'meta': meta,
         'scores': scores,
         'feats1': feats1,
         'feats2': feats2,
