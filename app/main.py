@@ -126,8 +126,8 @@ app.include_router(
 # POST /variation/serialized-features
 app.include_router(
     serialized_features.router,
-    prefix=f"/{version}/variation/serialized-features",
-    tags=["variation"],
+    prefix=f"/{version}/serialized-features",
+    tags=["features"],
     dependencies=[Depends(auth_email.get_current_user)],
     responses={404: {"description": "Not found"}},
 )

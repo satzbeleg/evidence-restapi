@@ -136,15 +136,15 @@ curl -X POST "http://localhost:7070/v1/bestworst/samples/4/3/100/0" \
     -H  "accept: application/json" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" \
-    -d '{"headword": "Fahrrad"}'
+    -d '{"headword": "blau"}'
 
 curl -X POST "http://localhost:7070/v1/interactivity/training-examples/5/10/0" \
     -H  "accept: application/json" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" \
-    -d '{"headword": "Fahrrad"}'
+    -d '{"headword": "blau"}'
 
-curl -X POST "http://localhost:7070/v1/variation/serialized-features" \
+curl -X POST "http://localhost:7070/v1/serialized-features" \
     -H  "accept: application/json" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" \
