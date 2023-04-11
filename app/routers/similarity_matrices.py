@@ -1,13 +1,10 @@
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, Depends
 from typing import List, Dict, Any
 from .auth_email import get_current_user
-
 from ..cqlconn import CqlConn
 import cassandra as cas
 import cassandra.query
-import uuid
 import gc
-import json
 import numpy as np
 import numba
 import logging
@@ -16,14 +13,8 @@ from ..transform import i2f
 # start logger
 logger = logging.getLogger(__name__)
 
-# Summary
-#   GET     n.a.
-#   POST    /bestworst/evaluations
-#               Save a list of evaluated example sets
-#   PUT     n.a.
-#   DELETE  n.a.
+# POST /variation/similarity-matrices
 router = APIRouter()
-
 
 # connect to Cassandra DB
 conn = CqlConn()
@@ -52,7 +43,7 @@ def int8_to_bool(serialized: List[np.int8]) -> List[bool]:
 async def create_similarity_matrices(data: Dict[str, Any],
                                      user_id: str = Depends(get_current_user)
                                      ) -> dict:
-    """Save evaluated example sets to database
+    """Return similarity matrices for a given headword
 
     Parameters:
     -----------
@@ -173,7 +164,7 @@ async def create_similarity_matrices(data: Dict[str, Any],
     mat_biblio = compute_simi_matrix(hashes_biblio)
 
     # done
-    results = {
+    return {
         'status': 'success',
         'num': idx.shape[0],
         'sentences': sentences.tolist(),
@@ -185,4 +176,3 @@ async def create_similarity_matrices(data: Dict[str, Any],
         'simi-biblio': mat_biblio.tolist(),
         'features': feats.tolist(),
     }
-    return results

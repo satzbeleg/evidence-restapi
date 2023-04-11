@@ -31,7 +31,7 @@ Please follow the instruction of the [deployment repository](https://github.com/
 
 ```bash
 cd $EVIDENCE_DEPLOY 
-docker-compose up --build dbauth dbeval dbeval-install  mail
+docker-compose up --build dbauth dbeval mail
 ```
 
 ### Install Ubuntu / Debian packages
@@ -46,7 +46,7 @@ sudo apt install -y --no-install-recommends libpq-dev
 ### Install FastAPI in a separate virtual environment
 
 ```bash
-python3.7 -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip3 install --upgrade pip
 pip3 install -r requirements-dev.txt
@@ -99,9 +99,11 @@ pytest
 Authenticate yourself with the test account. Request an access token.
 
 ```bash
+EMAIL=nobody@example.com
+PASSWORD=supersecret
 curl -X POST "http://localhost:7070/v1/auth/login" \
     -H "accept: application/json" -H "Content-Type: application/x-www-form-urlencoded" \
-    -d "username=nobody@example.com&password=supersecret" \
+    -d "username=${EMAIL}&password=${PASSWORD}" \
     > mytokendata
 cat mytokendata
 TOKEN=$(cat mytokendata | python3 -c "import sys, json; print(json.load(sys.stdin)['access_token'])")
@@ -134,13 +136,19 @@ curl -X POST "http://localhost:7070/v1/bestworst/samples/4/3/100/0" \
     -H  "accept: application/json" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" \
-    -d '{"headword": "Fahrrad"}'
+    -d '{"headword": "blau"}'
 
 curl -X POST "http://localhost:7070/v1/interactivity/training-examples/5/10/0" \
     -H  "accept: application/json" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" \
-    -d '{"headword": "Fahrrad"}'
+    -d '{"headword": "blau"}'
+
+curl -X POST "http://localhost:7070/v1/serialized-features" \
+    -H  "accept: application/json" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${TOKEN}" \
+    -d '{"headword": "blau", "limit": 5}'
 ```
 
 

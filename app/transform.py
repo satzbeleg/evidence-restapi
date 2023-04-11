@@ -3,7 +3,7 @@ import numpy as np
 
 # util code to convert int8 representation to float32
 # see https://github.com/satzbeleg/evidence-features
-# 
+#
 
 
 # evf.utils.py
@@ -50,7 +50,6 @@ def fasttext176_i2f(encoded):
     return np.vstack(pdf).astype(float)
 
 
-
 # evf.transform_all.py
 def i2f(feats1, feats2, feats3, feats4,
         feats5, feats6, feats7, feats8,
@@ -85,20 +84,39 @@ def i2f(feats1, feats2, feats3, feats4,
     ])
 
 
-def i2dict(feats1, feats2, feats3, feats4,
-           feats5, feats6, feats7, feats8,
-           feats9, feats12, feats13, feats14):
-    return {
-        "semantic": np.array(feats1, dtype=np.int8),
-        "pos": np.array(feats2, dtype=np.int8),
-        "morphfeats": np.array(feats3, dtype=np.int8),
-        "syntax": np.array(feats4, dtype=np.int8),
-        "phonetic": np.array(feats5, dtype=np.int16),
-        "charfreq": np.array(feats6, dtype=np.int16),
-        "bigramfreq": np.array(feats7, dtype=np.int16),
-        "wordfreq": np.array(feats8, dtype=np.int8),
-        "morphamb": np.array(feats9, dtype=np.int8),
-        "txtlen": np.array(feats12, dtype=np.int16),
-        "dialect": np.array(feats13, dtype=np.int8),
-        "emoji": np.array(feats14, dtype=np.int8)
-    }
+# items = []
+# for row in dat:
+#     feats = i2dict(
+#         row.feats1, row.feats2, row.feats3, row.feats4,
+#         row.feats5, row.feats6, row.feats7, row.feats8,
+#         row.feats9, row.feats12, row.feats13, row.feats14)
+#     items.append({
+#         "example_id": str(row.example_id),
+#         "text": row.sentence,
+#         "headword": row.headword,
+#         "spans": row.spans,
+#         "context": {
+#             "license": row.license,
+#             "biblio": row.biblio,
+#             "sentence_id": str(row.sent_id)},
+#         "score": row.score,
+#         "features": feats
+#     })
+#
+# def i2dict(feats1, feats2, feats3, feats4,
+#            feats5, feats6, feats7, feats8,
+#            feats9, feats12, feats13, feats14):
+#     return {
+#         "semantic": np.array(feats1, dtype=np.int8),
+#         "pos": np.array(feats2, dtype=np.int8),
+#         "morphfeats": np.array(feats3, dtype=np.int8),
+#         "syntax": np.array(feats4, dtype=np.int8),
+#         "phonetic": np.array(feats5, dtype=np.int16),
+#         "charfreq": np.array(feats6, dtype=np.int16),
+#         "bigramfreq": np.array(feats7, dtype=np.int16),
+#         "wordfreq": np.array(feats8, dtype=np.int8),
+#         "morphamb": np.array(feats9, dtype=np.int8),
+#         "txtlen": np.array(feats12, dtype=np.int16),
+#         "dialect": np.array(feats13, dtype=np.int8),
+#         "emoji": np.array(feats14, dtype=np.int8)
+#     }

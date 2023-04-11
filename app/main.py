@@ -11,7 +11,8 @@ from .routers import (
     bestworst_evaluations,
     interactivity_deleted_episodes,
     interactivity_training_examples,
-    similarity_matrices
+    similarity_matrices,
+    serialized_features
 )
 
 
@@ -113,11 +114,20 @@ app.include_router(
     responses={404: {"description": "Not found"}},
 )
 
-# POST /similarity
+# POST /variation/similarity-matrices
 app.include_router(
     similarity_matrices.router,
     prefix=f"/{version}/variation/similarity-matrices",
     tags=["variation"],
+    dependencies=[Depends(auth_email.get_current_user)],
+    responses={404: {"description": "Not found"}},
+)
+
+# POST /variation/serialized-features
+app.include_router(
+    serialized_features.router,
+    prefix=f"/{version}/serialized-features",
+    tags=["features"],
     dependencies=[Depends(auth_email.get_current_user)],
     responses={404: {"description": "Not found"}},
 )
