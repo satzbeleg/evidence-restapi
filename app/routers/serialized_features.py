@@ -114,54 +114,37 @@ async def get_serialized_features(params: Dict[str, Any],
             """, fetch_size=limit)
 
         # read fetched rows
-        meta = []
-        scores = []
-        feats1 = []
-        feats2 = []
-        feats3 = []
-        feats4 = []
-        feats5 = []
-        feats6 = []
-        feats7 = []
-        feats8 = []
-        feats9 = []
-        feats12 = []
-        feats13 = []
-        feats14 = []
-        hashes15 = []
-        hashes16 = []
-        hashes18 = []
+        examples = []
 
         # read async fetched rows
         def process_results(results):
             for row in results:
-                meta.append({
-                    row.headword, 
-                    str(row.example_id), 
-                    row.sentence, 
-                    str(row.sent_id), 
-                    json.dumps(row.spans), 
-                    row.annot, 
-                    row.biblio, 
-                    row.license, 
-                    row.score
+                examples.append({
+                    "headword": row.headword, 
+                    "example_id": str(row.example_id), 
+                    "sentence": row.sentence, 
+                    "sentence_id": str(row.sent_id), 
+                    "spans": json.dumps(row.spans), 
+                    "annot": row.annot, 
+                    "biblio": row.biblio, 
+                    "license": row.license, 
+                    "score": row.score,
+                    "feats1": row.feats1,
+                    "feats2": row.feats2,
+                    "feats3": row.feats3,
+                    "feats4": row.feats4,
+                    "feats5": row.feats5,
+                    "feats6": row.feats6,
+                    "feats7": row.feats7,
+                    "feats8": row.feats8,
+                    "feats9": row.feats9,
+                    "feats12": row.feats12,
+                    "feats13": row.feats13,
+                    "feats14": row.feats14,
+                    "hashes15": row.hashes15,
+                    "hashes16": row.hashes16,
+                    "hashes18": row.hashes18,
                 })
-                scores.append(row.score)
-                feats1.append(row.feats1)
-                feats2.append(row.feats2)
-                feats3.append(row.feats3)
-                feats4.append(row.feats4)
-                feats5.append(row.feats5)
-                feats6.append(row.feats6)
-                feats7.append(row.feats7)
-                feats8.append(row.feats8)
-                feats9.append(row.feats9)
-                feats12.append(row.feats12)
-                feats13.append(row.feats13)
-                feats14.append(row.feats14)
-                hashes15.append(row.hashes15)
-                hashes16.append(row.hashes16)
-                hashes18.append(row.hashes18)
 
         # download 1 page of 'limit' sentences
         future = session.execute_async(
@@ -185,29 +168,13 @@ async def get_serialized_features(params: Dict[str, Any],
         return {"status": "failed", "num": 0, "error": err,
                 "msg": "Unknown error"}
 
-    if len(meta) == 0:
+    if len(examples) == 0:
         return {"status": "failed", "num": 0,
                 "msg": "No sentence examples"}
 
     # done
     return {
         'status': 'success',
-        'num': len(meta),
-        'meta': meta,
-        'scores': scores,
-        'feats1': feats1,
-        'feats2': feats2,
-        'feats3': feats3,
-        'feats4': feats4,
-        'feats5': feats5,
-        'feats6': feats6,
-        'feats7': feats7,
-        'feats8': feats8,
-        'feats9': feats9,
-        'feats12': feats12,
-        'feats13': feats13,
-        'feats14': feats14,
-        'hashes15': hashes15,
-        'hashes16': hashes16,
-        'hashes18': hashes18,
+        'num': len(examples),
+        'examples': examples
     }
