@@ -158,3 +158,14 @@ def _cas_init_tables(session: cas.cluster.Session,
     );
     """)
     pass
+
+    # Table for the model weights
+    session.execute(f"""
+    CREATE TABLE IF NOT EXISTS {keyspace}.model_weights (
+      user_id     UUID
+    , updated_at  TIMESTAMP 
+    , weights     frozen<list<FLOAT>>
+    , PRIMARY KEY(user_id, updated_at)
+    ) WITH CLUSTERING ORDER BY (updated_at DESC);
+    """)
+    pass

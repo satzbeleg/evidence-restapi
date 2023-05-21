@@ -12,7 +12,8 @@ from .routers import (
     interactivity_deleted_episodes,
     interactivity_training_examples,
     similarity_matrices,
-    serialized_features
+    serialized_features,
+    model_weights
 )
 
 
@@ -128,6 +129,16 @@ app.include_router(
     serialized_features.router,
     prefix=f"/{version}/serialized-features",
     tags=["features"],
+    dependencies=[Depends(auth_email.get_current_user)],
+    responses={404: {"description": "Not found"}},
+)
+
+# POST /model/save
+# POST /model/load
+app.include_router(
+    model_weights.router,
+    prefix=f"/{version}/model",
+    tags=["model"],
     dependencies=[Depends(auth_email.get_current_user)],
     responses={404: {"description": "Not found"}},
 )
