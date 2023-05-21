@@ -161,6 +161,11 @@ curl -X POST "http://localhost:7070/v1/model/load" \
     -H  "accept: application/json" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" 
+
+curl -X POST "http://localhost:7070/v1/model/load-all" \
+    -H  "accept: application/json" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${TOKEN}" 
 ```
 
 

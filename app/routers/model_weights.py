@@ -84,3 +84,35 @@ async def load_model_weights(user_id: str = Depends(get_current_user)
         'timestamp': timestamp,
         'weights': weights
     }
+
+
+@router.post("/load-all")
+async def load_model_weights(user_id: str = Depends(get_current_user)
+                             ) -> dict:
+    try:
+        # prepare statement
+        stmt = cas.query.SimpleStatement(f"""
+            SELECT updated_at, weights
+            FROM {session.keyspace}.model_weights
+            WHERE user_id=%s ;
+            """)
+        # find last model weights
+        results = []
+        for row in session.execute(stmt, [uuid.UUID(user_id)]):
+            results.append({'updated_at': row.updated_at, 'weights': row.weights})
+        # delete
+        del stmt
+        gc.collect()
+    except Exception as err:
+        logger.error(err)
+        gc.collect()
+        return {"status": "failed"}
+
+    if len(results) == 0:
+        return {"status": "no-data"}
+
+    # done
+    return {
+        'status': 'success',
+        'data': results
+    }
