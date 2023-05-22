@@ -9,6 +9,7 @@ import gc
 import logging
 import datetime
 import uuid
+import json
 
 # start logger
 logger = logging.getLogger(__name__)
@@ -40,7 +41,7 @@ async def save_model_weights(data: Dict[str, Any],
         res = session.execute(stmt, [
             uuid.UUID(user_id), 
             datetime.datetime.now(), 
-            data['weights']
+            json.dumps(data['weights'])
         ])
         flag = res[0].applied
     except Exception as err:
@@ -65,7 +66,7 @@ async def load_model_weights(user_id: str = Depends(get_current_user)
         timestamp, weights = None, None
         for row in session.execute(stmt, [uuid.UUID(user_id)]):
             timestamp = row.updated_at
-            weights = row.weights
+            weights = json.loads(row.weights)
             break
         # delete
         del stmt
@@ -99,7 +100,10 @@ async def load_model_weights(user_id: str = Depends(get_current_user)
         # find last model weights
         results = []
         for row in session.execute(stmt, [uuid.UUID(user_id)]):
-            results.append({'updated_at': row.updated_at, 'weights': row.weights})
+            results.append({
+                'updated_at': row.updated_at, 
+                'weights': json.loads(row.weights)
+            })
         # delete
         del stmt
         gc.collect()
