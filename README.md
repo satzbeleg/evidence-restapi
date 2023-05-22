@@ -149,6 +149,23 @@ curl -X POST "http://localhost:7070/v1/serialized-features" \
     -H "Content-Type: application/json" \
     -H "Authorization: Bearer ${TOKEN}" \
     -d '{"headword": "blau", "limit": 5}'
+
+# model weights
+curl -X POST "http://localhost:7070/v1/model/save" \
+    -H  "accept: application/json" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${TOKEN}" \
+    -d '{"weights": [0.2, -0.3, 1.3, -0.4]}'
+
+curl -X POST "http://localhost:7070/v1/model/load" \
+    -H  "accept: application/json" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${TOKEN}" 
+
+curl -X POST "http://localhost:7070/v1/model/load-all" \
+    -H  "accept: application/json" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer ${TOKEN}" 
 ```
 
 
