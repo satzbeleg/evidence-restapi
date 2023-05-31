@@ -29,8 +29,8 @@ paging_states = {}
 def delete_old_paging_states():
     """Delete old paging states"""
     global paging_states
-    for user_id in paging_states:
-        for headword in paging_states[user_id]:
+    for user_id in list(paging_states):
+        for headword in list(paging_states[user_id]):
             d = time.time() - paging_states[user_id][headword]['timestamp']
             if d > 86400:
                 del paging_states[user_id][headword]
