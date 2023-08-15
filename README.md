@@ -1,5 +1,3 @@
-[![Join the chat at https://gitter.im/satzbeleg/community](https://badges.gitter.im/satzbeleg/community.svg)](https://gitter.im/satzbeleg/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
-
 # EVIDENCE project - REST API (fastapi)
 
 Table of contents
